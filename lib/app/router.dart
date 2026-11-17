@@ -1,16 +1,38 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/profile/profile.dart';
+import '../data/profile/profile_repository.dart';
 import '../features/home/home_screen.dart';
+import '../features/onboarding/onboarding_placeholder_screen.dart';
+import 'first_launch.dart';
 import 'shell/coming_soon_screen.dart';
 import 'shell/orb_tab.dart';
+import 'shell/splash_screen.dart';
 import 'shell/tab_shell.dart';
 import 'theme/theme_preview_screen.dart';
 
 /// The app's router, shared through Riverpod so tests can override it.
+///
+/// It opens on the splash and re-runs [firstLaunchRedirect] whenever the
+/// profile changes, e.g. when it finishes loading or onboarding is done.
 final routerProvider = Provider<GoRouter>((ref) {
-  final router = createRouter();
-  ref.onDispose(router.dispose);
+  final profile = ValueNotifier<AsyncValue<Profile>>(const AsyncLoading());
+  ref.listen(
+    profileProvider,
+    (_, next) => profile.value = next,
+    fireImmediately: true,
+  );
+  final router = createRouter(
+    initialLocation: splashPath,
+    refreshListenable: profile,
+    redirect: (_, state) => firstLaunchRedirect(profile.value, state.uri.path),
+  );
+  ref.onDispose(() {
+    router.dispose();
+    profile.dispose();
+  });
   return router;
 });
 
@@ -21,10 +43,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 /// - Onboarding and check-in sit outside the shell, on the root navigator,
 ///   so the bottom bar is hidden there.
 ///
-/// First-launch routing to onboarding comes with PMG6-57.
-GoRouter createRouter({String initialLocation = '/home'}) {
+/// [redirect] is the first-launch check; tests that only need the route
+/// tree leave it out.
+GoRouter createRouter({
+  String initialLocation = '/home',
+  GoRouterRedirect? redirect,
+  Listenable? refreshListenable,
+}) {
   return GoRouter(
     initialLocation: initialLocation,
+    redirect: redirect,
+    refreshListenable: refreshListenable,
     routes: [
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
@@ -56,12 +85,17 @@ GoRouter createRouter({String initialLocation = '/home'}) {
       ),
       // Outside the shell: no bottom bar. Feature tickets replace the
       // placeholders and add the onboarding steps as child routes.
+      GoRoute(path: splashPath, builder: (_, _) => const SplashScreen()),
       GoRoute(
         path: '/onboarding',
-        builder: (_, _) => const ComingSoonScreen(
-          title: 'Welcome',
-          message: 'Onboarding is being built.',
-        ),
+        redirect: (_, state) =>
+            state.uri.path == '/onboarding' ? onboardingStartPath : null,
+        routes: [
+          GoRoute(
+            path: 'meet',
+            builder: (_, _) => const OnboardingPlaceholderScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: '/check-in',
