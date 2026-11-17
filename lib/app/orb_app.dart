@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'router.dart';
 import 'theme/app_theme.dart';
+import 'theme/orb_scroll_behavior.dart';
 
 /// The root widget of the app.
 class OrbApp extends ConsumerWidget {
@@ -15,6 +16,7 @@ class OrbApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
+      scrollBehavior: const OrbScrollBehavior(),
       routerConfig: ref.watch(routerProvider),
     );
   }
