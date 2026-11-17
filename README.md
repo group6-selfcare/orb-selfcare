@@ -38,6 +38,15 @@ flutter test
 
 Never push directly to `main`.
 
+### Rules on `main`
+
+`main` is protected by the **Protect main** ruleset (Settings → Rules → Rulesets):
+
+- Every change goes through a pull request with 1 approval. New pushes dismiss old approvals.
+- The **Analyze and test** CI check must pass.
+- No force-pushes, and the branch can't be deleted.
+- **Bypass:** organization owners (the repo owner) can merge a pull request without meeting these rules. This is for emergencies and for when no reviewer is available. It still has to be a pull request; direct pushes are blocked for everyone.
+
 ## Project structure
 
 Planned layout; the folders are created in PMG6-45.
