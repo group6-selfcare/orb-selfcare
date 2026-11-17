@@ -49,7 +49,7 @@ Never push directly to `main`.
 
 ## Project structure
 
-Planned layout; the folders are created in PMG6-45.
+Each folder has a short README saying what goes in it.
 
 ```
 lib/
@@ -66,3 +66,11 @@ assets/svg/   Pig D poses, mood faces, tab icons
 ## Tech
 
 Riverpod · go_router · drift (SQLite) · shared_preferences · flutter_svg. All data stays on the device.
+
+## Code generation
+
+Riverpod providers (`@riverpod`) and the drift database use generated `*.g.dart` files. After changing them, run:
+
+```bash
+dart run build_runner build
+```
