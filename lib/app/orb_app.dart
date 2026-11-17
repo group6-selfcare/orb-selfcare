@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'router.dart';
 import 'theme/app_theme.dart';
-import 'theme/theme_preview_screen.dart';
 
 /// The root widget of the app.
-///
-/// It shows the theme preview until the go_router tab shell (PMG6-47)
-/// replaces it.
-class OrbApp extends StatelessWidget {
+class OrbApp extends ConsumerWidget {
   const OrbApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
       title: 'Orb',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       themeMode: ThemeMode.light,
-      home: const ThemePreviewScreen(),
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }

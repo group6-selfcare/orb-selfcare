@@ -141,7 +141,9 @@ abstract final class AppTheme {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         height: 68,
-        indicatorColor: OrbColors.mist,
+        // No pill behind the selected icon: the coloured icon and the ink
+        // label carry the selection, as in Figma.
+        indicatorColor: Colors.transparent,
         iconTheme: WidgetStateProperty.resolveWith(
           (states) => IconThemeData(
             color: states.contains(WidgetState.selected)
@@ -150,11 +152,12 @@ abstract final class AppTheme {
           ),
         ),
         labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => textTheme.labelSmall?.copyWith(
-            color: states.contains(WidgetState.selected)
-                ? OrbColors.ink
-                : OrbColors.textMuted,
-          ),
+          (states) => states.contains(WidgetState.selected)
+              ? textTheme.labelSmall?.copyWith(
+                  color: OrbColors.ink,
+                  fontWeight: FontWeight.w700,
+                )
+              : textTheme.labelSmall?.copyWith(color: OrbColors.textMuted),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
