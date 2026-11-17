@@ -1,13 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/profile/profile.dart';
+import '../features/onboarding/onboarding_routes.dart';
 import 'shell/orb_tab.dart';
 
 /// Where the app opens on a cold start, before the profile is loaded.
 const splashPath = '/splash';
 
 /// The first onboarding screen, N1 Meet your companion.
-const onboardingStartPath = '/onboarding/meet';
+const onboardingStartPath = OnboardingRoutes.meet;
 
 /// Decides where a navigation to [location] should go instead, or null to
 /// allow it.
