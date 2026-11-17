@@ -17,8 +17,32 @@ abstract final class OnboardingCopy {
   static const meetButton = "Let's begin";
   static const meetFootnote = 'Takes about a minute';
 
+  // N2 Name your companion
+  static const nameTitle = 'What would you like to call me?';
+  static const nameHint = 'Give me a name';
+  static const nameHelper =
+      'I picked one for you. Keep it, change it, or try another.';
+  static const nameSuggest = 'Suggest another name';
+  static const nameMaxLength = 20;
+
+  /// Suggested pig names. The first is the default.
+  static const pigNames = [
+    'Bao',
+    'Mochi',
+    'Sokha',
+    'Bopha',
+    'Kiri',
+    'Mango',
+    'Nom',
+    'Lotus',
+    'Pepper',
+    'Dumpling',
+    'Tuk Tuk',
+    'Kampot',
+  ];
+
   // Shared
   static const back = 'Back';
-  static const next = 'Continue';
+  static const next = 'Next';
   static String progress(int step, int total) => 'Step $step of $total';
 }
