@@ -12,10 +12,14 @@ class ComingSoonScreen extends StatelessWidget {
     super.key,
     required this.title,
     required this.message,
+    this.action,
   });
 
   final String title;
   final String message;
+
+  /// An optional button under the message.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +62,10 @@ class ComingSoonScreen extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                if (action case final action?) ...[
+                  const SizedBox(height: OrbSpacing.xl),
+                  action,
+                ],
               ],
             ),
           ),
