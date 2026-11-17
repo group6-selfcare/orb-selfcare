@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../data/profile/profile.dart';
 import '../data/profile/profile_repository.dart';
 import '../features/home/home_screen.dart';
-import '../features/onboarding/onboarding_placeholder_screen.dart';
+import '../features/onboarding/onboarding_routes.dart';
 import 'first_launch.dart';
 import 'shell/coming_soon_screen.dart';
 import 'shell/orb_tab.dart';
@@ -83,20 +83,9 @@ GoRouter createRouter({
           ),
         ],
       ),
-      // Outside the shell: no bottom bar. Feature tickets replace the
-      // placeholders and add the onboarding steps as child routes.
+      // Outside the shell: no bottom bar.
       GoRoute(path: splashPath, builder: (_, _) => const SplashScreen()),
-      GoRoute(
-        path: '/onboarding',
-        redirect: (_, state) =>
-            state.uri.path == '/onboarding' ? onboardingStartPath : null,
-        routes: [
-          GoRoute(
-            path: 'meet',
-            builder: (_, _) => const OnboardingPlaceholderScreen(),
-          ),
-        ],
-      ),
+      OnboardingRoutes.route(),
       GoRoute(
         path: '/check-in',
         builder: (_, _) => const ComingSoonScreen(

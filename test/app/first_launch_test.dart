@@ -8,7 +8,7 @@ import 'package:orb_pm/app/shell/splash_screen.dart';
 import 'package:orb_pm/data/profile/profile.dart';
 import 'package:orb_pm/data/profile/profile_repository.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
-import 'package:orb_pm/features/onboarding/onboarding_placeholder_screen.dart';
+import 'package:orb_pm/features/onboarding/meet_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -81,7 +81,7 @@ void main() {
 
       expect(find.byType(SplashScreen), findsOneWidget);
       expect(find.byType(HomeScreen), findsNothing);
-      expect(find.byType(OnboardingPlaceholderScreen), findsNothing);
+      expect(find.byType(MeetScreen), findsNothing);
     });
 
     testWidgets('a fresh install opens onboarding N1', (tester) async {
@@ -89,7 +89,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(location(c), onboardingStartPath);
-      expect(find.byType(OnboardingPlaceholderScreen), findsOneWidget);
+      expect(find.byType(MeetScreen), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
     });
 
@@ -132,11 +132,19 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('the debug skip button finishes onboarding', (tester) async {
+    testWidgets('the debug Finish on the last step completes onboarding', (
+      tester,
+    ) async {
       final c = await launch(tester, {});
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Skip onboarding (debug)'));
+      await tester.tap(find.text("Let's begin"));
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 2; i++) {
+        await tester.tap(find.text('Continue'));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.text('Finish (debug)'));
       await tester.pumpAndSettle();
 
       expect(location(c), '/home');
