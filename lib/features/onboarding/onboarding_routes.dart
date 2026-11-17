@@ -7,6 +7,7 @@ import '../../app/theme/tokens.dart';
 import '../../data/profile/profile_repository.dart';
 import '../../shared/copy.dart';
 import 'meet_screen.dart';
+import 'name_screen.dart';
 import 'onboarding_scaffold.dart';
 
 /// The onboarding paths. Each step is pushed on top of the last, so back
@@ -24,15 +25,8 @@ abstract final class OnboardingRoutes {
     redirect: (_, state) => state.uri.path == root ? meet : null,
     routes: [
       GoRoute(path: 'meet', builder: (_, _) => const MeetScreen()),
-      // Placeholders until PMG6-54 (N2), PMG6-55 (N3) and PMG6-56 (N4).
-      GoRoute(
-        path: 'name',
-        builder: (_, _) => const _StepPlaceholder(
-          step: 2,
-          title: 'Name your companion',
-          next: trait,
-        ),
-      ),
+      GoRoute(path: 'name', builder: (_, _) => const NameScreen()),
+      // Placeholders until PMG6-55 (N3) and PMG6-56 (N4).
       GoRoute(
         path: 'trait',
         builder: (_, _) => const _StepPlaceholder(

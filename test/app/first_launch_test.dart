@@ -9,6 +9,7 @@ import 'package:orb_pm/data/profile/profile.dart';
 import 'package:orb_pm/data/profile/profile_repository.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
 import 'package:orb_pm/features/onboarding/meet_screen.dart';
+import 'package:orb_pm/shared/copy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -141,7 +142,7 @@ void main() {
       await tester.tap(find.text("Let's begin"));
       await tester.pumpAndSettle();
       for (var i = 0; i < 2; i++) {
-        await tester.tap(find.text('Continue'));
+        await tester.tap(find.text(OnboardingCopy.next));
         await tester.pumpAndSettle();
       }
       await tester.tap(find.text('Finish (debug)'));
