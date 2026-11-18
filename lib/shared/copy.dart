@@ -135,6 +135,74 @@ abstract final class HomeCopy {
     };
   }
 
+  /// What the pig says on Home: [greetingBefore] until today's check-in,
+  /// then a line for today's [level] (1 Rough to 5 Great) in the trait's
+  /// voice.
+  ///
+  /// On Rough and Low the pig is warm and stays close. It never judges,
+  /// guilt-trips or sounds disappointed.
+  static String greetingFor({
+    required Trait trait,
+    required int? level,
+    required String userName,
+    required String pigName,
+  }) {
+    if (level == null) {
+      return greetingBefore(trait: trait, userName: userName, pigName: pigName);
+    }
+    return switch ((trait, level)) {
+      // Rough
+      (Trait.gentle, 1) =>
+        "Thank you for telling me, $userName. Today sounds heavy. "
+            "I'm right here, and we can take it slowly.",
+      (Trait.cheerful, 1) =>
+        "That sounds like a really hard day, $userName. "
+            "$pigName's staying right by your side.",
+      (Trait.playful, 1) =>
+        "No jokes today, $userName. Just me, sitting close. "
+            "You don't have to do anything else.",
+      // Low
+      (Trait.gentle, 2) =>
+        "A low day is still a day you showed up, $userName. "
+            "Be soft with yourself. I'm here.",
+      (Trait.cheerful, 2) =>
+        "Thanks for being honest, $userName. Low days pass, "
+            "and I'll keep you company until this one does.",
+      (Trait.playful, 2) =>
+        "Low battery day? That's okay, $userName. "
+            "$pigName will hold the snacks while you rest.",
+      // Okay
+      (Trait.gentle, 3) =>
+        'An okay day is a good place to be, $userName. '
+            "Let's keep it gentle.",
+      (Trait.cheerful, 3) =>
+        "Okay is great, $userName! Steady days count. "
+            "Proud of you for checking in.",
+      (Trait.playful, 3) =>
+        'Okay-ish? $pigName approves, $userName. '
+            'Solid, steady, snack-worthy.',
+      // Good
+      (Trait.gentle, 4) =>
+        "I'm glad today feels good, $userName. "
+            "Let's notice what helped.",
+      (Trait.cheerful, 4) =>
+        'Yay, a good day, $userName! '
+            "That's made $pigName's tail wiggle.",
+      (Trait.playful, 4) =>
+        'Good day detected, $userName! '
+            "$pigName is doing a tiny happy dance.",
+      // Great
+      (Trait.gentle, _) =>
+        'What a lovely day, $userName. '
+            'I hope you can hold onto this feeling.',
+      (Trait.cheerful, _) =>
+        "A great day, $userName! I'm cheering so loud for you!",
+      (Trait.playful, _) =>
+        "Great?! Okay, $pigName is doing cartwheels, $userName. "
+            'Tell me everything!',
+    };
+  }
+
   // Today card
   static const todayLabel = 'Today';
   static const todayEmptyTitle = 'No check-in yet today';
