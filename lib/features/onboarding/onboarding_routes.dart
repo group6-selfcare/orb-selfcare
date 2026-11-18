@@ -9,6 +9,7 @@ import '../../shared/copy.dart';
 import 'meet_screen.dart';
 import 'name_screen.dart';
 import 'onboarding_scaffold.dart';
+import 'trait_screen.dart';
 
 /// The onboarding paths. Each step is pushed on top of the last, so back
 /// (the arrow or Android's button) returns one step.
@@ -26,15 +27,8 @@ abstract final class OnboardingRoutes {
     routes: [
       GoRoute(path: 'meet', builder: (_, _) => const MeetScreen()),
       GoRoute(path: 'name', builder: (_, _) => const NameScreen()),
-      // Placeholders until PMG6-55 (N3) and PMG6-56 (N4).
-      GoRoute(
-        path: 'trait',
-        builder: (_, _) => const _StepPlaceholder(
-          step: 3,
-          title: 'Companion trait',
-          next: you,
-        ),
-      ),
+      GoRoute(path: 'trait', builder: (_, _) => const TraitScreen()),
+      // Placeholder until PMG6-56 (N4).
       GoRoute(
         path: 'you',
         builder: (_, _) =>

@@ -5,6 +5,8 @@
 /// check-in text here.
 library;
 
+import '../data/profile/profile.dart';
+
 /// Text for the onboarding screens (N1 to N4).
 abstract final class OnboardingCopy {
   // N1 Meet your companion
@@ -40,6 +42,28 @@ abstract final class OnboardingCopy {
     'Tuk Tuk',
     'Kampot',
   ];
+
+  // N3 Companion trait
+  static const traitTitle = 'What am I like?';
+  static const traitSubtitle =
+      "Pick my personality for good days. On hard days, I'm always gentle.";
+  static const traitName = {
+    Trait.gentle: 'Gentle',
+    Trait.cheerful: 'Cheerful',
+    Trait.playful: 'Playful',
+  };
+  static const traitDescription = {
+    Trait.gentle: 'Calm and soft, never in a hurry',
+    Trait.cheerful: 'Bright, celebrates small wins',
+    Trait.playful: 'A bit silly, here to make you smile',
+  };
+
+  /// A line in each trait's voice, shown on its card.
+  static const traitSample = {
+    Trait.gentle: "“Whenever you're ready, I'm here.”",
+    Trait.cheerful: '“Yay! You showed up today!”',
+    Trait.playful: '“Psst… I saved you a spot.”',
+  };
 
   // Shared
   static const back = 'Back';
