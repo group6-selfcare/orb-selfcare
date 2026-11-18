@@ -196,6 +196,8 @@ void main() {
         Tristate.isTrue;
 
     Future<void> pickLevel(WidgetTester tester, MoodLevel level) async {
+      await tester.ensureVisible(face(level));
+      await tester.pumpAndSettle();
       await tester.tap(face(level));
       await tester.pumpAndSettle();
     }
@@ -299,6 +301,111 @@ void main() {
       expect(moodFromName('happy'), Mood.happy);
       expect(moodFromName('unknown'), isNull);
       expect(moodFromName(null), isNull);
+    });
+  });
+
+  group('note and tags', () {
+    Finder tag(String id) => find.byKey(ValueKey('tag-$id'));
+    final note = find.byKey(const ValueKey('check-in-note'));
+    final moreTags = find.byKey(const ValueKey('more-tags'));
+
+    Future<void> tapVisible(WidgetTester tester, Finder finder) async {
+      await tester.ensureVisible(finder);
+      await tester.pumpAndSettle();
+      await tester.tap(finder);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> pickOkay(WidgetTester tester) async {
+      await tester.tap(face(MoodLevel.okay));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('shows the note hint and the 8 primary tags', (tester) async {
+      await openCheckIn(tester);
+      await pickOkay(tester);
+
+      expect(find.text(CheckInCopy.noteHint), findsOneWidget);
+      expect(find.text(CheckInCopy.tagsTitle), findsOneWidget);
+      for (final label in [
+        'Work',
+        'Education',
+        'Family',
+        'Friends',
+        'Health',
+        'Self Care',
+        'Money',
+        'Partner',
+      ]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+      expect(find.byType(FilterChip), findsNWidgets(8));
+      expect(find.text('Create a tag'), findsNothing);
+    });
+
+    testWidgets('"More tags" shows all 18', (tester) async {
+      await openCheckIn(tester);
+      await pickOkay(tester);
+
+      await tapVisible(tester, moreTags);
+
+      expect(find.byType(FilterChip), findsNWidgets(18));
+      expect(find.text('Weather'), findsOneWidget);
+      expect(find.text(CheckInCopy.fewerTags), findsOneWidget);
+    });
+
+    testWidgets('selecting Family and Work and tapping Done saves both', (
+      tester,
+    ) async {
+      await openCheckIn(tester);
+      await pickOkay(tester);
+
+      await tapVisible(tester, tag('family'));
+      await tapVisible(tester, tag('work'));
+      await tester.tap(done);
+      await tester.pumpAndSettle();
+
+      expect(location(), '/home');
+      expect((await repo.getToday())?.tagIds, {'family', 'work'});
+    });
+
+    testWidgets('tapping a picked tag again unpicks it', (tester) async {
+      await openCheckIn(tester);
+      await pickOkay(tester);
+
+      await tapVisible(tester, tag('health'));
+      await tapVisible(tester, tag('health'));
+      await tester.tap(done);
+      await tester.pumpAndSettle();
+
+      expect((await repo.getToday())?.tagIds, isEmpty);
+    });
+
+    testWidgets('the note and tags are kept on back', (tester) async {
+      await openCheckIn(tester);
+      await pickOkay(tester);
+
+      await tester.enterText(note, 'Long day of exams');
+      await tapVisible(tester, tag('education'));
+      await tester.tap(find.byTooltip(OnboardingCopy.back));
+      await tester.pumpAndSettle();
+
+      final today = await repo.getToday();
+      expect(location(), '/home');
+      expect(today?.note, 'Long day of exams');
+      expect(today?.tagIds, {'education'});
+    });
+
+    testWidgets('the note stops at 500 characters', (tester) async {
+      await openCheckIn(tester);
+      await pickOkay(tester);
+
+      await tester.enterText(note, 'a' * 600);
+      await tester.pump();
+
+      final field = tester.widget<TextField>(note);
+      expect(field.controller!.text, hasLength(500));
+      expect(find.text('500/500'), findsOneWidget);
     });
   });
 }

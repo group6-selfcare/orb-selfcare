@@ -32,6 +32,15 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   /// The optional, more precise feeling. Only one at a time.
   Mood? _emotion;
 
+  final _note = TextEditingController();
+  final _tagIds = <String>{};
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
   /// Saves run one after another, so the last one always wins.
   Future<void> _saving = Future.value();
   bool _leaving = false;
@@ -40,16 +49,23 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     final level = _level;
     if (level == null) return _saving;
     final emotion = _emotion?.name;
+    final note = _note.text;
+    final tagIds = {..._tagIds};
     return _saving = _saving.then(
-      (_) => _repo.saveToday(level: level.value, emotion: emotion).catchError((
-        Object _,
-      ) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text(CheckInCopy.saveFailed)));
-        }
-      }),
+      (_) => _repo
+          .saveToday(
+            level: level.value,
+            emotion: emotion,
+            note: note,
+            tagIds: tagIds,
+          )
+          .catchError((Object _) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text(CheckInCopy.saveFailed)),
+              );
+            }
+          }),
     );
   }
 
@@ -60,6 +76,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       if (!emotionsForLevel[level]!.contains(_emotion)) _emotion = null;
     });
     _save();
+  }
+
+  /// Tags are saved with everything else on Done or on the way out.
+  void _toggleTag(String id) {
+    setState(() => _tagIds.contains(id) ? _tagIds.remove(id) : _tagIds.add(id));
   }
 
   /// Tapping the picked emotion again clears it.
@@ -109,54 +130,60 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: ListView(
+                child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(
                     OrbSpacing.screen,
                     OrbSpacing.sm,
                     OrbSpacing.screen,
                     OrbSpacing.xl,
                   ),
-                  children: [
-                    Center(
-                      child: SvgPicture.asset(
-                        'assets/svg/pig/pig_wave.svg',
-                        width: 120,
-                        height: 120,
-                        semanticsLabel: 'Your pig companion, waving',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: SvgPicture.asset(
+                          'assets/svg/pig/pig_wave.svg',
+                          width: 120,
+                          height: 120,
+                          semanticsLabel: 'Your pig companion, waving',
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: OrbSpacing.lg),
-                    Semantics(
-                      header: true,
-                      child: Text(
-                        CheckInCopy.question,
-                        style: text.headlineSmall,
+                      const SizedBox(height: OrbSpacing.lg),
+                      Semantics(
+                        header: true,
+                        child: Text(
+                          CheckInCopy.question,
+                          style: text.headlineSmall,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(height: OrbSpacing.xs),
+                      Text(
+                        CheckInCopy.reassurance,
+                        style: text.bodyMedium?.copyWith(
+                          color: OrbColors.textSecondary,
+                        ),
                         textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: OrbSpacing.xs),
-                    Text(
-                      CheckInCopy.reassurance,
-                      style: text.bodyMedium?.copyWith(
-                        color: OrbColors.textSecondary,
+                      const SizedBox(height: OrbSpacing.xl),
+                      LevelPicker(selected: level, onPicked: _pickLevel),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        alignment: Alignment.topCenter,
+                        child: level == null
+                            ? const SizedBox(width: double.infinity)
+                            : _Extras(
+                                level: level,
+                                emotion: _emotion,
+                                onEmotion: _pickEmotion,
+                                note: _note,
+                                tagIds: _tagIds,
+                                onTag: _toggleTag,
+                              ),
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: OrbSpacing.xl),
-                    LevelPicker(selected: level, onPicked: _pickLevel),
-                    AnimatedSize(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      alignment: Alignment.topCenter,
-                      child: level == null
-                          ? const SizedBox(width: double.infinity)
-                          : _Extras(
-                              level: level,
-                              emotion: _emotion,
-                              onEmotion: _pickEmotion,
-                            ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               if (level != null)
@@ -188,11 +215,17 @@ class _Extras extends StatelessWidget {
     required this.level,
     required this.emotion,
     required this.onEmotion,
+    required this.note,
+    required this.tagIds,
+    required this.onTag,
   });
 
   final MoodLevel level;
   final Mood? emotion;
   final ValueChanged<Mood> onEmotion;
+  final TextEditingController note;
+  final Set<String> tagIds;
+  final ValueChanged<String> onTag;
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +255,94 @@ class _Extras extends StatelessWidget {
         ),
         const SizedBox(height: OrbSpacing.xl),
         EmotionPicker(level: level, selected: emotion, onPicked: onEmotion),
+        const SizedBox(height: OrbSpacing.lg),
+        TextField(
+          key: const ValueKey('check-in-note'),
+          controller: note,
+          minLines: 3,
+          maxLines: 6,
+          maxLength: CheckInCopy.noteMaxLength,
+          textCapitalization: TextCapitalization.sentences,
+          keyboardType: TextInputType.multiline,
+          decoration: const InputDecoration(hintText: CheckInCopy.noteHint),
+        ),
+        const SizedBox(height: OrbSpacing.sm),
+        TagPicker(selected: tagIds, onToggled: onTag),
       ],
+    );
+  }
+}
+
+/// "What's it about?": the 8 primary tags as chips, and all 18 behind
+/// "More tags". Several can be picked.
+class TagPicker extends ConsumerStatefulWidget {
+  const TagPicker({super.key, required this.selected, required this.onToggled});
+
+  final Set<String> selected;
+  final ValueChanged<String> onToggled;
+
+  @override
+  ConsumerState<TagPicker> createState() => _TagPickerState();
+}
+
+class _TagPickerState extends ConsumerState<TagPicker> {
+  bool _showAll = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final tags = ref.watch(tagsProvider).value ?? const <Tag>[];
+    final shown = [
+      for (final tag in tags)
+        // A picked tag stays visible even when the list is folded.
+        if (_showAll || tag.isPrimary || widget.selected.contains(tag.id)) tag,
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(OrbSpacing.lg),
+      decoration: BoxDecoration(
+        color: OrbColors.surface,
+        borderRadius: BorderRadius.circular(OrbRadii.xl),
+        border: Border.all(color: OrbColors.border),
+      ),
+      child: Column(
+        children: [
+          Semantics(
+            header: true,
+            child: Text(CheckInCopy.tagsTitle, style: text.titleMedium),
+          ),
+          const SizedBox(height: OrbSpacing.md),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: OrbSpacing.sm,
+            runSpacing: OrbSpacing.sm,
+            children: [
+              for (final tag in shown)
+                FilterChip(
+                  key: ValueKey('tag-${tag.id}'),
+                  label: Text(tag.label),
+                  selected: widget.selected.contains(tag.id),
+                  onSelected: (_) => widget.onToggled(tag.id),
+                  materialTapTargetSize: MaterialTapTargetSize.padded,
+                ),
+            ],
+          ),
+          const SizedBox(height: OrbSpacing.xs),
+          TextButton.icon(
+            key: const ValueKey('more-tags'),
+            onPressed: () => setState(() => _showAll = !_showAll),
+            iconAlignment: IconAlignment.end,
+            icon: Icon(
+              _showAll
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+            ),
+            label: Text(
+              _showAll ? CheckInCopy.fewerTags : CheckInCopy.moreTags,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

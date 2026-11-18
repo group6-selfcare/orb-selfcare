@@ -149,6 +149,13 @@ abstract final class CheckInCopy {
     Mood.numb: 'Numb',
   };
 
+  // Note and tags (PMG6-60)
+  static const noteHint = 'Add a note (optional)';
+  static const noteMaxLength = 500;
+  static const tagsTitle = "What's it about?";
+  static const moreTags = 'More tags';
+  static const fewerTags = 'Fewer tags';
+
   /// What TalkBack reads for a level face, e.g. "Feeling Low".
   static String levelSemantics(MoodLevel level) =>
       'Feeling ${levelName[level]}';
