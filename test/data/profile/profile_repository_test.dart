@@ -107,5 +107,20 @@ void main() {
       expect(seen, [true]);
       expect((await ProfileRepository().load()).onboardingDone, isTrue);
     });
+
+    test('reset forgets the profile, as on a fresh install', () async {
+      SharedPreferences.setMockInitialValues({
+        'profile.userName': 'Dara',
+        'profile.pigName': 'Mochi',
+        'profile.trait': 'cheerful',
+        'profile.onboardingDone': true,
+      });
+      await container.read(profileProvider.future);
+
+      await container.read(profileProvider.notifier).reset();
+
+      expect(container.read(profileProvider).value, Profile.empty);
+      expect(await ProfileRepository().load(), Profile.empty);
+    });
   });
 }

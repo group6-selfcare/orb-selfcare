@@ -162,5 +162,25 @@ void main() {
       expect(location(c), '/home');
       expect(c.read(profileProvider).value?.onboardingDone, isTrue);
     });
+
+    testWidgets('the debug Reset onboarding on Home starts again at N1', (
+      tester,
+    ) async {
+      final c = await launch(tester, {
+        'profile.userName': 'Dara',
+        'profile.pigName': 'Mochi',
+        'profile.onboardingDone': true,
+      });
+      await tester.pumpAndSettle();
+      expect(location(c), '/home');
+
+      await tester.tap(find.text('Reset onboarding (debug)'));
+      await tester.pumpAndSettle();
+
+      expect(location(c), onboardingStartPath);
+      expect(find.byType(MeetScreen), findsOneWidget);
+      expect(c.read(profileProvider).value, Profile.empty);
+      expect(await ProfileRepository().load(), Profile.empty);
+    });
   });
 }
