@@ -78,3 +78,33 @@ abstract final class OnboardingCopy {
   static const next = 'Next';
   static String progress(int step, int total) => 'Step $step of $total';
 }
+
+/// Text for the Home tab.
+abstract final class HomeCopy {
+  static const title = 'Orb';
+  static const checkIn = 'Check in';
+
+  /// What the pig says before today's check-in, in its trait's voice.
+  static String greetingBefore({
+    required Trait trait,
+    required String userName,
+    required String pigName,
+  }) {
+    return switch (trait) {
+      Trait.gentle =>
+        "Hi $userName, it's $pigName. Whenever you're ready, "
+            "tell me how today feels.",
+      Trait.cheerful =>
+        "Hey $userName! $pigName here. I can't wait to hear "
+            'how your day is going!',
+      Trait.playful =>
+        'Psst, $userName… $pigName saved you a spot. '
+            'How are we feeling today?',
+    };
+  }
+
+  // Today card
+  static const todayLabel = 'Today';
+  static const todayEmptyTitle = 'No check-in yet today';
+  static const todayEmptyBody = 'One tap is enough. It takes a few seconds.';
+}
