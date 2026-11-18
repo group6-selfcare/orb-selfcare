@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:orb_pm/app/orb_app.dart';
 import 'package:orb_pm/app/router.dart';
 import 'package:orb_pm/data/check_in/check_in_repository.dart';
+import 'package:orb_pm/app/theme/tokens.dart';
 import 'package:orb_pm/data/db/app_database.dart';
 import 'package:orb_pm/features/check_in/mood_level.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
@@ -22,6 +23,7 @@ class SpyCheckInRepository extends CheckInRepository {
   SpyCheckInRepository(super.db);
 
   final levels = <int>[];
+  final emotions = <String?>[];
 
   @override
   Future<void> saveToday({
@@ -31,6 +33,7 @@ class SpyCheckInRepository extends CheckInRepository {
     Set<String> tagIds = const {},
   }) {
     levels.add(level);
+    emotions.add(emotion);
     return super.saveToday(
       level: level,
       emotion: emotion,
@@ -184,5 +187,118 @@ void main() {
       final svg = await rootBundle.loadString(moodFaceAsset(level.face));
       expect(svg, startsWith('<svg'));
     }
+  });
+
+  group('emotion step', () {
+    Finder emotion(Mood mood) => find.byKey(ValueKey('emotion-${mood.name}'));
+    bool emotionSelected(WidgetTester tester, Mood mood) =>
+        tester.getSemantics(emotion(mood)).flagsCollection.isSelected ==
+        Tristate.isTrue;
+
+    Future<void> pickLevel(WidgetTester tester, MoodLevel level) async {
+      await tester.tap(face(level));
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> pickEmotion(WidgetTester tester, Mood mood) async {
+      await tester.ensureVisible(emotion(mood));
+      await tester.pumpAndSettle();
+      await tester.tap(emotion(mood));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('"Want to name it?" shows the 4 faces for the level', (
+      tester,
+    ) async {
+      await openCheckIn(tester);
+      expect(find.text(CheckInCopy.emotionTitle), findsNothing);
+
+      await pickLevel(tester, MoodLevel.low);
+
+      expect(find.text(CheckInCopy.emotionTitle), findsOneWidget);
+      for (final mood in Mood.values) {
+        expect(
+          emotion(mood),
+          emotionsForLevel[MoodLevel.low]!.contains(mood)
+              ? findsOneWidget
+              : findsNothing,
+          reason: mood.name,
+        );
+      }
+    });
+
+    testWidgets('tapping an emotion saves it; tapping again clears it', (
+      tester,
+    ) async {
+      await openCheckIn(tester);
+      await pickLevel(tester, MoodLevel.good);
+
+      await pickEmotion(tester, Mood.peaceful);
+      expect(emotionSelected(tester, Mood.peaceful), isTrue);
+      expect((await repo.getToday())?.emotion, 'peaceful');
+
+      await pickEmotion(tester, Mood.peaceful);
+      expect(emotionSelected(tester, Mood.peaceful), isFalse);
+      expect((await repo.getToday())?.emotion, isNull);
+      expect(repo.emotions, [null, 'peaceful', null]);
+    });
+
+    testWidgets('only one emotion is selected at a time', (tester) async {
+      await openCheckIn(tester);
+      await pickLevel(tester, MoodLevel.great);
+
+      await pickEmotion(tester, Mood.happy);
+      await pickEmotion(tester, Mood.loved);
+
+      expect(emotionSelected(tester, Mood.happy), isFalse);
+      expect(emotionSelected(tester, Mood.loved), isTrue);
+      expect((await repo.getToday())?.emotion, 'loved');
+    });
+
+    testWidgets('a new level keeps the emotion only if it still fits', (
+      tester,
+    ) async {
+      await openCheckIn(tester);
+      await pickLevel(tester, MoodLevel.good);
+      await pickEmotion(tester, Mood.happy);
+
+      // Great also offers Happy.
+      await pickLevel(tester, MoodLevel.great);
+      expect((await repo.getToday())?.emotion, 'happy');
+
+      // Low doesn't.
+      await pickLevel(tester, MoodLevel.low);
+      expect((await repo.getToday())?.emotion, isNull);
+      expect((await repo.getToday())?.level, 2);
+    });
+  });
+
+  group('emotionsForLevel', () {
+    test('every level offers 3 to 4 emotions', () {
+      for (final level in MoodLevel.values) {
+        expect(
+          emotionsForLevel[level],
+          hasLength(inInclusiveRange(3, 4)),
+          reason: level.name,
+        );
+      }
+    });
+
+    testWidgets('every emotion has a bundled SVG and a label', (tester) async {
+      final moods = emotionsForLevel.values.expand((m) => m).toSet();
+      for (final mood in moods) {
+        final svg = await tester.runAsync(
+          () => rootBundle.loadString(moodFaceAsset(mood), cache: false),
+        );
+        expect(svg, startsWith('<svg'), reason: mood.name);
+        expect(CheckInCopy.emotionName[mood], isNotNull, reason: mood.name);
+      }
+    });
+
+    test('stored names read back as moods', () {
+      expect(moodFromName('happy'), Mood.happy);
+      expect(moodFromName('unknown'), isNull);
+      expect(moodFromName(null), isNull);
+    });
   });
 }

@@ -25,3 +25,23 @@ enum MoodLevel {
 
 /// The SVG for a mood face.
 String moodFaceAsset(Mood mood) => 'assets/svg/mood/emotion_${mood.name}.svg';
+
+/// The emotions offered under "Want to name it?" for each level.
+///
+/// Draft from PMG6-59, awaiting PO approval. Every name is a [Mood], so it
+/// has a face in `assets/svg/mood/`.
+const emotionsForLevel = <MoodLevel, List<Mood>>{
+  MoodLevel.great: [Mood.excited, Mood.happy, Mood.loved, Mood.surprised],
+  MoodLevel.good: [Mood.happy, Mood.peaceful, Mood.loved, Mood.okay],
+  MoodLevel.okay: [Mood.okay, Mood.peaceful, Mood.tired, Mood.sleepy],
+  MoodLevel.low: [Mood.sad, Mood.disappointed, Mood.tired, Mood.numb],
+  MoodLevel.rough: [Mood.angry, Mood.anxious, Mood.stressed, Mood.sad],
+};
+
+/// The stored emotion name back as a [Mood], or null if unknown.
+Mood? moodFromName(String? name) {
+  for (final mood in Mood.values) {
+    if (mood.name == name) return mood;
+  }
+  return null;
+}
