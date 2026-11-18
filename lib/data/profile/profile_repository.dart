@@ -41,6 +41,14 @@ class ProfileRepository {
     await prefs.setBool(_onboardingDone, profile.onboardingDone);
   }
 
+  /// Removes the saved profile, so the next load reads a fresh install.
+  Future<void> clear() async {
+    final prefs = await _prefs;
+    for (final key in [_userName, _pigName, _trait, _onboardingDone]) {
+      await prefs.remove(key);
+    }
+  }
+
   /// An unknown or missing name reads as "not picked yet", so an old or
   /// broken value can never crash the app.
   static Trait? _traitFromName(String? name) {
@@ -87,5 +95,12 @@ class ProfileNotifier extends AsyncNotifier<Profile> {
   Future<void> completeOnboarding() async {
     final current = await future;
     await save(current.copyWith(onboardingDone: true));
+  }
+
+  /// Forgets the profile, as if the app was just installed. For testing
+  /// only: debug builds offer it on Home.
+  Future<void> reset() async {
+    await ref.read(profileRepositoryProvider).clear();
+    state = const AsyncData(Profile.empty);
   }
 }
