@@ -174,7 +174,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(location(c), '/home');
 
-      await tester.tap(find.text('Reset onboarding (debug)'));
+      // The debug tools sit at the bottom of Home, below the Today card.
+      final reset = find.text('Reset onboarding (debug)');
+      await tester.scrollUntilVisible(reset, 200);
+      await tester.tap(reset);
       await tester.pumpAndSettle();
 
       expect(location(c), onboardingStartPath);
