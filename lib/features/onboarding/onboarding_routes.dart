@@ -33,9 +33,17 @@ abstract final class OnboardingRoutes {
       GoRoute(path: 'you', builder: (_, _) => const YouScreen()),
       GoRoute(
         path: 'first-check-in',
-        builder: (_, _) => const CheckInScreen(onboarding: true),
+        builder: (context, _) => CheckInScreen(
+          onboarding: true,
+          onFinished: (level) => context.push(dayOne, extra: level),
+        ),
       ),
-      GoRoute(path: 'done', builder: (_, _) => const DayOneScreen()),
+      GoRoute(
+        path: 'done',
+        // The level comes from the first check-in, so N15 never has to wait
+        // for it and never shows the wrong line first.
+        builder: (_, state) => DayOneScreen(level: state.extra as int?),
+      ),
     ],
   );
 }

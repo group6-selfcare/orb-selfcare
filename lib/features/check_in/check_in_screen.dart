@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/tokens.dart';
 import '../../data/check_in/check_in_repository.dart';
 import '../../shared/copy.dart';
-import '../onboarding/onboarding_routes.dart';
 import 'mood_level.dart';
 
 /// The daily check-in at `/check-in`.
@@ -20,12 +19,17 @@ import 'mood_level.dart';
 ///
 /// With [onboarding] it's the user's first check-in (N12, N13): its own
 /// title and question, Continue instead of Done, a Skip action once a face
-/// is picked, and both go on to N15 Day one done. The check-in saved is a
-/// real one for today, exactly as in normal mode.
+/// is picked, and both call [onFinished]. The check-in saved is a real one
+/// for today, exactly as in normal mode.
 class CheckInScreen extends ConsumerStatefulWidget {
-  const CheckInScreen({super.key, this.onboarding = false});
+  const CheckInScreen({super.key, this.onboarding = false, this.onFinished});
 
   final bool onboarding;
+
+  /// Onboarding only: called with the saved level (1 to 5) when Continue or
+  /// Skip is tapped, after the save. Onboarding opens N15 from here, so this
+  /// screen doesn't need to know onboarding's routes.
+  final ValueChanged<int>? onFinished;
 
   @override
   ConsumerState<CheckInScreen> createState() => _CheckInScreenState();
@@ -134,9 +138,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     await _save();
     if (!mounted) return;
     if (widget.onboarding) {
-      // Pushed, not popped: back from N15 returns here, ready to go again.
+      // N15 is pushed, not popped to: back from N15 returns here, ready to go
+      // again.
       _leaving = false;
-      context.push(OnboardingRoutes.dayOne);
+      widget.onFinished?.call(_level!.value);
     } else {
       _close();
     }
@@ -176,7 +181,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
             tooltip: OnboardingCopy.back,
           ),
           actions: [
-            // The note and tags are optional: Skip goes straight on.
+            // The note and tags are optional: Skip goes straight on. It runs
+            // the same save as Continue, so anything already typed is kept.
             if (widget.onboarding && level != null)
               TextButton(
                 key: const ValueKey('check-in-skip'),

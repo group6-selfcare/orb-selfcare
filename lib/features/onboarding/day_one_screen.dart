@@ -14,8 +14,17 @@ import '../../shared/copy.dart';
 /// "Go to Home" is the only place onboarding is marked done. It then
 /// replaces the whole stack with Home, so back can't return to onboarding.
 /// The weekly dots from Figma are left out: weekly targets come later.
+///
+/// The pig's line needs the user's name, the trait and today's level. The
+/// line only appears once all three are known, so it never shows an empty
+/// name or the wrong voice first.
 class DayOneScreen extends ConsumerStatefulWidget {
-  const DayOneScreen({super.key});
+  const DayOneScreen({super.key, this.level});
+
+  /// Today's level (1 to 5), passed by the first check-in. When it's
+  /// missing (for example after a deep link), today's check-in is read
+  /// instead.
+  final int? level;
 
   @override
   ConsumerState<DayOneScreen> createState() => _DayOneScreenState();
@@ -44,8 +53,15 @@ class _DayOneScreenState extends ConsumerState<DayOneScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final profile = ref.watch(profileProvider).value ?? Profile.empty;
-    final level = ref.watch(todayCheckInProvider).value?.level ?? 3;
+    final profile = ref.watch(profileProvider).value;
+    final level = widget.level ?? ref.watch(todayCheckInProvider).value?.level;
+    final line = (profile == null || level == null)
+        ? null
+        : OnboardingCopy.dayOneLine(
+            trait: profile.trait ?? Trait.gentle,
+            level: level,
+            userName: profile.userName,
+          );
 
     return Scaffold(
       body: SafeArea(
@@ -91,17 +107,18 @@ class _DayOneScreenState extends ConsumerState<DayOneScreen> {
                           ),
                         ),
                         const SizedBox(height: OrbSpacing.md),
-                        Text(
-                          OnboardingCopy.dayOneLine(
-                            trait: profile.trait ?? Trait.gentle,
-                            level: level,
-                            userName: profile.userName,
-                          ),
-                          key: const ValueKey('day-one-line'),
-                          style: text.bodyLarge?.copyWith(
-                            color: OrbColors.textSecondary,
-                          ),
-                          textAlign: TextAlign.center,
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: line == null
+                              ? const SizedBox.shrink()
+                              : Text(
+                                  line,
+                                  key: const ValueKey('day-one-line'),
+                                  style: text.bodyLarge?.copyWith(
+                                    color: OrbColors.textSecondary,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                         ),
                       ],
                     ),

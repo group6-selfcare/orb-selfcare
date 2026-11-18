@@ -141,6 +141,50 @@ void main() {
     );
   });
 
+  testWidgets('N15 never shows an empty name or the wrong line', (
+    tester,
+  ) async {
+    await start(tester);
+    await tapAndSettle(tester, rough);
+    final expected = OnboardingCopy.dayOneLine(
+      trait: Trait.playful,
+      level: 1,
+      userName: 'Dara',
+    );
+
+    // Record the line on every frame of the slide-in, from the first one.
+    await tester.tap(find.text(CheckInCopy.continueLabel));
+    final seen = <String?>{};
+    for (var frame = 0; frame < 40; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      final line = find.byKey(const ValueKey('day-one-line'));
+      if (line.evaluate().isNotEmpty) seen.add(tester.widget<Text>(line).data);
+    }
+    await tester.pumpAndSettle();
+
+    expect(location(), OnboardingRoutes.dayOne);
+    expect(seen, {expected}, reason: 'every frame that shows a line');
+  });
+
+  testWidgets('N15 opened without a level reads today\'s check-in', (
+    tester,
+  ) async {
+    await start(tester);
+    await CheckInRepository(db).saveToday(level: 2);
+
+    router.push(OnboardingRoutes.dayOne);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('day-one-line'))).data,
+      OnboardingCopy.dayOneLine(
+        trait: Trait.playful,
+        level: 2,
+        userName: 'Dara',
+      ),
+    );
+  });
+
   testWidgets('Go to Home finishes onboarding and clears the stack', (
     tester,
   ) async {
