@@ -12,6 +12,8 @@ import 'package:orb_pm/features/onboarding/you_screen.dart';
 import 'package:orb_pm/shared/copy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/test_database.dart';
+
 void main() {
   late GoRouter router;
   late ProviderContainer container;
@@ -24,7 +26,7 @@ void main() {
     addTearDown(tester.view.reset);
     router = createRouter(initialLocation: OnboardingRoutes.meet);
     container = ProviderContainer(
-      overrides: [routerProvider.overrideWithValue(router)],
+      overrides: [routerProvider.overrideWithValue(router), inMemoryDatabase()],
     );
     addTearDown(container.dispose);
     await tester.pumpWidget(

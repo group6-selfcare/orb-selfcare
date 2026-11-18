@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/tokens.dart';
 import '../../data/check_in/check_in_repository.dart';
 import '../../shared/copy.dart';
+import '../onboarding/onboarding_routes.dart';
 import 'mood_level.dart';
 
 /// The daily check-in at `/check-in`.
@@ -16,8 +17,15 @@ import 'mood_level.dart';
 ///
 /// Leaving (Done, the back arrow or Android back) after a face was tapped
 /// saves again, so nothing typed is lost. Leaving before saves nothing.
+///
+/// With [onboarding] it's the user's first check-in (N12, N13): its own
+/// title and question, Continue instead of Done, a Skip action once a face
+/// is picked, and both go on to N15 Day one done. The check-in saved is a
+/// real one for today, exactly as in normal mode.
 class CheckInScreen extends ConsumerStatefulWidget {
-  const CheckInScreen({super.key});
+  const CheckInScreen({super.key, this.onboarding = false});
+
+  final bool onboarding;
 
   @override
   ConsumerState<CheckInScreen> createState() => _CheckInScreenState();
@@ -125,7 +133,13 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
     _leaving = true;
     await _save();
     if (!mounted) return;
-    _close();
+    if (widget.onboarding) {
+      // Pushed, not popped: back from N15 returns here, ready to go again.
+      _leaving = false;
+      context.push(OnboardingRoutes.dayOne);
+    } else {
+      _close();
+    }
   }
 
   void _close() {
@@ -149,12 +163,28 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text(_editing ? CheckInCopy.editTitle : CheckInCopy.title),
+          title: Text(
+            widget.onboarding
+                ? CheckInCopy.firstTitle
+                : _editing
+                ? CheckInCopy.editTitle
+                : CheckInCopy.title,
+          ),
           leading: IconButton(
             onPressed: _close,
             icon: const Icon(Icons.chevron_left, size: 28),
             tooltip: OnboardingCopy.back,
           ),
+          actions: [
+            // The note and tags are optional: Skip goes straight on.
+            if (widget.onboarding && level != null)
+              TextButton(
+                key: const ValueKey('check-in-skip'),
+                onPressed: _done,
+                child: const Text(CheckInCopy.skip),
+              ),
+            const SizedBox(width: OrbSpacing.sm),
+          ],
         ),
         body: SafeArea(
           child: Column(
@@ -183,7 +213,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                       Semantics(
                         header: true,
                         child: Text(
-                          CheckInCopy.question,
+                          widget.onboarding
+                              ? CheckInCopy.firstQuestion
+                              : CheckInCopy.question,
                           style: text.headlineSmall,
                           textAlign: TextAlign.center,
                         ),
@@ -228,7 +260,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                   child: FilledButton(
                     key: const ValueKey('check-in-done'),
                     onPressed: _done,
-                    child: const Text(CheckInCopy.done),
+                    child: Text(
+                      widget.onboarding
+                          ? CheckInCopy.continueLabel
+                          : CheckInCopy.done,
+                    ),
                   ),
                 ),
             ],

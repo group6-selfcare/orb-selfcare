@@ -1,10 +1,7 @@
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/shell/coming_soon_screen.dart';
-import '../../data/profile/profile_repository.dart';
+import '../check_in/check_in_screen.dart';
+import 'day_one_screen.dart';
 import 'meet_screen.dart';
 import 'name_screen.dart';
 import 'trait_screen.dart';
@@ -19,8 +16,11 @@ abstract final class OnboardingRoutes {
   static const trait = '$root/trait';
   static const you = '$root/you';
 
-  /// N12, the first check-in inside onboarding (PMG6-62).
+  /// N12 and N13, the first check-in inside onboarding (PMG6-62).
   static const firstCheckIn = '$root/first-check-in';
+
+  /// N15 Day one done.
+  static const dayOne = '$root/done';
 
   /// The `/onboarding` route and its steps, for `lib/app/router.dart`.
   static GoRoute route() => GoRoute(
@@ -31,34 +31,11 @@ abstract final class OnboardingRoutes {
       GoRoute(path: 'name', builder: (_, _) => const NameScreen()),
       GoRoute(path: 'trait', builder: (_, _) => const TraitScreen()),
       GoRoute(path: 'you', builder: (_, _) => const YouScreen()),
-      // Placeholder until PMG6-62 builds the first check-in (N12, N13).
       GoRoute(
         path: 'first-check-in',
-        builder: (_, _) => const _FirstCheckInPlaceholder(),
+        builder: (_, _) => const CheckInScreen(onboarding: true),
       ),
+      GoRoute(path: 'done', builder: (_, _) => const DayOneScreen()),
     ],
   );
-}
-
-/// Stands in for N12 until PMG6-62. Debug builds can finish onboarding
-/// here, so the team can still reach Home.
-class _FirstCheckInPlaceholder extends ConsumerWidget {
-  const _FirstCheckInPlaceholder();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ComingSoonScreen(
-      title: 'First check-in',
-      message: 'Your first check-in with your companion is being built.',
-      action: kDebugMode
-          ? FilledButton(
-              onPressed: () async {
-                await ref.read(profileProvider.notifier).completeOnboarding();
-                if (context.mounted) context.go('/home');
-              },
-              child: const Text('Finish (debug)'),
-            )
-          : null,
-    );
-  }
 }

@@ -158,7 +158,14 @@ void main() {
       expect(saved.pigName, OnboardingCopy.pigNames.first);
       expect(saved.onboardingDone, isFalse);
 
-      await tester.tap(find.text('Finish (debug)'));
+      // N12: one tap is a full check-in, then N15 finishes onboarding.
+      await tester.tap(find.byKey(const ValueKey('level-okay')));
+      await tester.pumpAndSettle();
+      expect(c.read(profileProvider).value?.onboardingDone, isFalse);
+      await tester.tap(find.text(CheckInCopy.continueLabel));
+      await tester.pumpAndSettle();
+      expect(c.read(profileProvider).value?.onboardingDone, isFalse);
+      await tester.tap(find.text(OnboardingCopy.dayOneButton));
       await tester.pumpAndSettle();
 
       expect(location(c), '/home');
