@@ -149,7 +149,7 @@ Figma is a reference, not the spec: a screen passes when it does what the accept
 | Q1 | Day-one line after a Rough or Low first check-in | PMG6-62: "the trait-specific line from `copy.dart`" | One shared gentle line for levels 1–2, whatever the trait | F3, F4 | Open |
 | Q2 | Level-to-emotion mapping | PMG6-59: used "once the PO approves it" | The mapping in E1 | E1, E3 | Decided: approved as drafted |
 | Q3 | Selected chip colour | PMG6-60: "the pink style from Figma" | Sapphire, from the app's chip theme | NT3 | Decided: keep sapphire |
-| Q4 | Level-to-pose table | PMG6-51: the table is "added to this ticket" | The mapping in H4, from `lib/shared/pig_pose.dart`; not on the ticket yet | H4 | Open |
+| Q4 | Level-to-pose table | PMG6-51: the table is "added to this ticket" | The mapping in H4, from `lib/shared/pig_pose.dart` | H4 | Decided: table added to PMG6-51 |
 
 ## Sign-off
 
