@@ -75,6 +75,36 @@ abstract final class OnboardingCopy {
       "I'll use it when I talk to you. Only you will see it.";
   static const saveFailed = "I couldn't save that. Please try again.";
 
+  // N15 Day one done
+  static const dayOneTitle = 'Day one, done!';
+  static const dayOneButton = 'Go to Home';
+
+  /// The pig's line on N15, in its trait's voice.
+  ///
+  /// On a Rough or Low first check-in every trait speaks gently: the pig
+  /// stays close and never sounds disappointed.
+  static String dayOneLine({
+    required Trait trait,
+    required int level,
+    required String userName,
+  }) {
+    if (level <= 2) {
+      return "Thank you for telling me, $userName. Hard days count too, "
+          "and I'm right here with you. Let's go home and take it slow.";
+    }
+    return switch (trait) {
+      Trait.gentle =>
+        'Thank you for telling me how you feel, $userName. '
+            "That's day one, and it counts. Let's go home together.",
+      Trait.cheerful =>
+        'You did it, $userName! Your first check-in is in. '
+            "I'm so happy we started. Let's go see our home!",
+      Trait.playful =>
+        'Ding ding! Day one unlocked, $userName. '
+            "I'm putting this in my scrapbook. Race you home?",
+    };
+  }
+
   // Shared
   static const back = 'Back';
   static const next = 'Next';
@@ -115,6 +145,12 @@ abstract final class HomeCopy {
 abstract final class CheckInCopy {
   static const title = 'Today';
   static const editTitle = 'Edit today';
+
+  // First check-in inside onboarding (N12, N13)
+  static const firstTitle = 'Your first check-in';
+  static const firstQuestion = 'How are you feeling right now?';
+  static const continueLabel = 'Continue';
+  static const skip = 'Skip';
   static const question = 'How are you feeling today?';
   static const reassurance = "Pick what fits. There's no wrong answer.";
   static const done = 'Done';
