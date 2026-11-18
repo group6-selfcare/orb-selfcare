@@ -65,6 +65,14 @@ abstract final class OnboardingCopy {
     Trait.playful: '“Psst… I saved you a spot.”',
   };
 
+  // N4 Your name
+  static String youIntro(String pigName) => "Nice to meet you. I'm $pigName!";
+  static const youTitle = "And what's your name?";
+  static const youHint = 'Your first name or nickname';
+  static const youHelper =
+      "I'll use it when I talk to you. Only you will see it.";
+  static const saveFailed = "I couldn't save that. Please try again.";
+
   // Shared
   static const back = 'Back';
   static const next = 'Next';

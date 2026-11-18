@@ -14,9 +14,9 @@ String suggestPigName(String current, {Random? random}) {
   return choices[(random ?? Random()).nextInt(choices.length)];
 }
 
-/// The name to save: [raw] without surrounding spaces, or null when that
-/// leaves nothing or too much.
-String? validPigName(String raw) {
+/// A pig or user name to save: [raw] without surrounding spaces, or null
+/// when that leaves nothing or more than 20 characters. Used by N2 and N4.
+String? validName(String raw) {
   final name = raw.trim();
   if (name.isEmpty || name.length > OnboardingCopy.nameMaxLength) return null;
   return name;

@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../app/theme/tokens.dart';
+import '../../app/shell/coming_soon_screen.dart';
 import '../../data/profile/profile_repository.dart';
-import '../../shared/copy.dart';
 import 'meet_screen.dart';
 import 'name_screen.dart';
-import 'onboarding_scaffold.dart';
 import 'trait_screen.dart';
+import 'you_screen.dart';
 
 /// The onboarding paths. Each step is pushed on top of the last, so back
 /// (the arrow or Android's button) returns one step.
@@ -20,6 +19,9 @@ abstract final class OnboardingRoutes {
   static const trait = '$root/trait';
   static const you = '$root/you';
 
+  /// N12, the first check-in inside onboarding (PMG6-62).
+  static const firstCheckIn = '$root/first-check-in';
+
   /// The `/onboarding` route and its steps, for `lib/app/router.dart`.
   static GoRoute route() => GoRoute(
     path: root,
@@ -28,61 +30,35 @@ abstract final class OnboardingRoutes {
       GoRoute(path: 'meet', builder: (_, _) => const MeetScreen()),
       GoRoute(path: 'name', builder: (_, _) => const NameScreen()),
       GoRoute(path: 'trait', builder: (_, _) => const TraitScreen()),
-      // Placeholder until PMG6-56 (N4).
+      GoRoute(path: 'you', builder: (_, _) => const YouScreen()),
+      // Placeholder until PMG6-62 builds the first check-in (N12, N13).
       GoRoute(
-        path: 'you',
-        builder: (_, _) =>
-            const _StepPlaceholder(step: 4, title: 'Your name', next: null),
+        path: 'first-check-in',
+        builder: (_, _) => const _FirstCheckInPlaceholder(),
       ),
     ],
   );
 }
 
-/// A stand-in step so the flow can be walked end to end. The last one
-/// finishes onboarding in debug builds only, until N4 and N15 exist.
-class _StepPlaceholder extends ConsumerWidget {
-  const _StepPlaceholder({
-    required this.step,
-    required this.title,
-    required this.next,
-  });
-
-  final int step;
-  final String title;
-  final String? next;
+/// Stands in for N12 until PMG6-62. Debug builds can finish onboarding
+/// here, so the team can still reach Home.
+class _FirstCheckInPlaceholder extends ConsumerWidget {
+  const _FirstCheckInPlaceholder();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final text = Theme.of(context).textTheme;
-    final next = this.next;
-
-    VoidCallback? onPressed;
-    if (next != null) {
-      onPressed = () => context.push(next);
-    } else if (kDebugMode) {
-      onPressed = () async {
-        await ref.read(profileProvider.notifier).completeOnboarding();
-        if (context.mounted) context.go('/home');
-      };
-    }
-
-    return OnboardingScaffold(
-      step: step,
-      buttonLabel: next != null ? OnboardingCopy.next : 'Finish (debug)',
-      onPressed: onPressed,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(title, style: text.headlineSmall),
-            const SizedBox(height: OrbSpacing.sm),
-            Text(
-              'Coming soon',
-              style: text.bodyLarge?.copyWith(color: OrbColors.textSecondary),
-            ),
-          ],
-        ),
-      ),
+    return ComingSoonScreen(
+      title: 'First check-in',
+      message: 'Your first check-in with your companion is being built.',
+      action: kDebugMode
+          ? FilledButton(
+              onPressed: () async {
+                await ref.read(profileProvider.notifier).completeOnboarding();
+                if (context.mounted) context.go('/home');
+              },
+              child: const Text('Finish (debug)'),
+            )
+          : null,
     );
   }
 }

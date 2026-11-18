@@ -58,7 +58,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
   }
 
   void _next() {
-    final name = validPigName(_name.text);
+    final name = validName(_name.text);
     if (name == null) return;
     ref.read(onboardingDraftProvider.notifier).setPigName(name);
     context.push(OnboardingRoutes.trait);
@@ -67,7 +67,7 @@ class _NameScreenState extends ConsumerState<NameScreen> {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    final canContinue = validPigName(_name.text) != null;
+    final canContinue = validName(_name.text) != null;
 
     return OnboardingScaffold(
       step: 2,

@@ -8,9 +8,10 @@ N1 Meet your companion, N2 Name your companion, N3 Companion trait, N4 Your name
 - `meet_screen.dart`: N1.
 - `name_screen.dart` and `pig_names.dart`: N2, the suggested names (in `copy.dart`) and the 1–20 character rule.
 - `trait_screen.dart`: N3, three trait cards that act as radio buttons.
+- `you_screen.dart`: N4. Next saves the answers to the device and opens the first check-in.
 
-N4 is a placeholder until PMG6-56. In debug builds, the last one has a "Finish (debug)" button that completes onboarding.
+The first check-in (`OnboardingRoutes.firstCheckIn`, N12) is a placeholder until PMG6-62. In debug builds it has a "Finish (debug)" button that completes onboarding. In debug builds, the last one has a "Finish (debug)" button that completes onboarding.
 
 Saving the profile (PMG6-57):
-- N4: call `ref.read(profileProvider.notifier).saveAnswers(...)` with the draft's answers.
+- N4: done. It calls `ref.read(profileProvider.notifier).saveAnswers(...)` with the draft's answers.
 - N15: call `completeOnboarding()`, then `context.go('/home')`. Never mark onboarding done earlier, so a user who quits halfway starts again from N1.
