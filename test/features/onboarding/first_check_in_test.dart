@@ -43,7 +43,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         routerProvider.overrideWithValue(router),
-        inMemoryDatabase(db),
+        overrideDatabase(db),
       ],
     );
     await tester.pumpWidget(

@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:orb_pm/app/orb_app.dart';
 import 'package:orb_pm/app/router.dart';
 import 'package:orb_pm/data/check_in/check_in_repository.dart';
+import 'package:orb_pm/data/db/app_database.dart';
 import 'package:orb_pm/data/profile/profile.dart';
+import 'package:orb_pm/features/check_in/mood_level.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
 import 'package:orb_pm/shared/copy.dart';
 import 'package:orb_pm/shared/pig_pose.dart';
@@ -17,14 +19,16 @@ import '../../helpers/test_database.dart';
 void main() {
   late GoRouter router;
 
-  /// Opens Home for a user called Dara whose pig is Mochi.
-  Future<void> pumpHome(
+  /// Opens Home for a user called Dara whose pig is Mochi, and returns its
+  /// database. [checkedInAt] is when the check-in is saved (default now).
+  Future<AppDatabase> pumpHome(
     WidgetTester tester, {
     Trait trait = Trait.cheerful,
     int? checkedInLevel,
     String? emotion,
     String? note,
     Set<String> tagIds = const {},
+    DateTime? checkedInAt,
   }) async {
     SharedPreferences.setMockInitialValues({
       'profile.userName': 'Dara',
@@ -37,7 +41,10 @@ void main() {
     addTearDown(tester.view.reset);
     final db = memoryDatabase();
     if (checkedInLevel != null) {
-      await CheckInRepository(db).saveToday(
+      await CheckInRepository(
+        db,
+        now: checkedInAt == null ? null : () => checkedInAt,
+      ).saveToday(
         level: checkedInLevel,
         emotion: emotion,
         note: note,
@@ -49,12 +56,13 @@ void main() {
       ProviderScope(
         overrides: [
           routerProvider.overrideWithValue(router),
-          inMemoryDatabase(db),
+          overrideDatabase(db),
         ],
         child: const OrbApp(),
       ),
     );
     await tester.pumpAndSettle();
+    return db;
   }
 
   String location() =>
@@ -204,6 +212,45 @@ void main() {
       expect(note.maxLines, 2);
       expect(find.text('Family'), findsOneWidget);
       expect(find.text('Self Care'), findsOneWidget);
+    });
+
+    testWidgets('the Today card draws the level face file', (tester) async {
+      await pumpHome(tester, checkedInLevel: 4);
+
+      expect(svgAssets(), contains(levelFaceAsset(MoodLevel.good)));
+    });
+
+    testWidgets('tags show in display order, not the order picked', (
+      tester,
+    ) async {
+      await pumpHome(tester, checkedInLevel: 4, tagIds: {'selfCare', 'work'});
+
+      expect(
+        tester.getTopLeft(find.text('Work')).dx,
+        lessThan(tester.getTopLeft(find.text('Self Care')).dx),
+      );
+    });
+
+    testWidgets('the time is the first check-in, even after an edit', (
+      tester,
+    ) async {
+      final today = DateTime.now();
+      DateTime at(int hour, int minute) =>
+          DateTime(today.year, today.month, today.day, hour, minute);
+      final db = await pumpHome(
+        tester,
+        checkedInLevel: 2,
+        checkedInAt: at(9, 5),
+      );
+
+      await tester.runAsync(
+        () => CheckInRepository(db, now: () => at(18, 30)).saveToday(level: 5),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Feeling Great'), findsOneWidget);
+      expect(find.textContaining('9:05 AM'), findsOneWidget);
+      expect(find.textContaining('6:30 PM'), findsNothing);
     });
 
     testWidgets('a level-only check-in shows just the level', (tester) async {

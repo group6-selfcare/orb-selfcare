@@ -37,22 +37,17 @@ const checkInIcon = 'assets/svg/icons/check_in.svg';
 ///
 /// Debug builds also get tools for testing: the theme preview, and a reset
 /// that starts onboarding again as if the app was just installed.
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  Future<void> _resetOnboarding() async {
+  Future<void> _resetOnboarding(BuildContext context, WidgetRef ref) async {
     await ref.read(profileProvider.notifier).reset();
     ref.invalidate(onboardingDraftProvider);
-    if (mounted) context.go(OnboardingRoutes.meet);
+    if (context.mounted) context.go(OnboardingRoutes.meet);
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(profileProvider).value ?? Profile.empty;
     final today = ref.watch(todayCheckInProvider).value;
     final pose = PigPose.forLevel(today?.level);
@@ -94,7 +89,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: const Text('Theme preview'),
               ),
               TextButton(
-                onPressed: _resetOnboarding,
+                onPressed: () => _resetOnboarding(context, ref),
                 child: const Text('Reset onboarding (debug)'),
               ),
             ],
@@ -301,6 +296,54 @@ class _EmptyTodayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
+    return _TodayCardFrame(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: OrbColors.mist,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.wb_sunny_outlined,
+              color: OrbColors.primary,
+            ),
+          ),
+          const SizedBox(width: OrbSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(HomeCopy.todayEmptyTitle, style: text.titleMedium),
+                const SizedBox(height: OrbSpacing.xs),
+                Text(
+                  HomeCopy.todayEmptyBody,
+                  style: text.bodyMedium?.copyWith(
+                    color: OrbColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: OrbColors.textMuted),
+        ],
+      ),
+    );
+  }
+}
+
+/// The tappable surface both Today cards sit on.
+class _TodayCardFrame extends StatelessWidget {
+  const _TodayCardFrame({required this.onTap, required this.child});
+
+  final VoidCallback onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Material(
       color: OrbColors.surface,
       shape: RoundedRectangleBorder(
@@ -313,42 +356,7 @@ class _EmptyTodayCard extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(OrbSpacing.lg),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: const BoxDecoration(
-                  color: OrbColors.mist,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.wb_sunny_outlined,
-                  color: OrbColors.primary,
-                ),
-              ),
-              const SizedBox(width: OrbSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(HomeCopy.todayEmptyTitle, style: text.titleMedium),
-                    const SizedBox(height: OrbSpacing.xs),
-                    Text(
-                      HomeCopy.todayEmptyBody,
-                      style: text.bodyMedium?.copyWith(
-                        color: OrbColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: OrbColors.textMuted,
-              ),
-            ],
-          ),
+          child: child,
         ),
       ),
     );
@@ -384,122 +392,107 @@ class _TodayCard extends ConsumerWidget {
     final level = MoodLevel.fromValue(checkIn.level);
     final emotion = moodFromName(checkIn.emotion);
     final note = checkIn.note;
-    final labels = {
+    // tagsProvider is in display order, so the chips match the check-in's.
+    final tags = [
       for (final tag in ref.watch(tagsProvider).value ?? const <Tag>[])
-        tag.id: tag.label,
-    };
-    final tags = [for (final id in checkIn.tagIds) ?labels[id]];
+        if (checkIn.tagIds.contains(tag.id)) tag.label,
+    ];
+    // The first save of the day, so an edit doesn't move it.
     final time = MaterialLocalizations.of(context)
-        .formatTimeOfDay(TimeOfDay.fromDateTime(checkIn.updatedAt));
+        .formatTimeOfDay(TimeOfDay.fromDateTime(checkIn.createdAt));
 
-    return Material(
-      color: OrbColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(OrbRadii.lg),
-        side: const BorderSide(color: OrbColors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        key: const ValueKey('home-today-card'),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(OrbSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return _TodayCardFrame(
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: level.face.color.withValues(alpha: 0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: SvgPicture.asset(
-                      moodFaceAsset(level.face),
-                      excludeFromSemantics: true,
-                    ),
-                  ),
-                  const SizedBox(width: OrbSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          HomeCopy.todayFeeling(CheckInCopy.levelName[level]!),
-                          key: const ValueKey('home-today-level'),
-                          style: text.titleMedium,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          HomeCopy.todayUpdated(time),
-                          style: text.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.edit_outlined, color: OrbColors.textMuted),
-                ],
+              Container(
+                width: 52,
+                height: 52,
+                padding: const EdgeInsets.all(OrbSpacing.xs),
+                decoration: BoxDecoration(
+                  color: level.face.color.withValues(alpha: 0.3),
+                  shape: BoxShape.circle,
+                ),
+                child: SvgPicture.asset(
+                  levelFaceAsset(level),
+                  excludeFromSemantics: true,
+                ),
               ),
-              if (emotion != null) ...[
-                const SizedBox(height: OrbSpacing.md),
-                Row(
-                  key: const ValueKey('home-today-emotion'),
+              const SizedBox(width: OrbSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SvgPicture.asset(
-                      moodFaceAsset(emotion),
-                      width: 24,
-                      height: 24,
-                      excludeFromSemantics: true,
-                    ),
-                    const SizedBox(width: OrbSpacing.sm),
                     Text(
-                      CheckInCopy.emotionName[emotion]!,
-                      style: text.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      CheckInCopy.levelSemantics(level),
+                      key: const ValueKey('home-today-level'),
+                      style: text.titleMedium,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      HomeCopy.todayCheckedInAt(time),
+                      style: text.bodySmall,
                     ),
                   ],
                 ),
-              ],
-              if (note != null) ...[
-                const SizedBox(height: OrbSpacing.sm),
-                Text(
-                  note,
-                  key: const ValueKey('home-today-note'),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.bodyMedium?.copyWith(
-                    color: OrbColors.textSecondary,
-                  ),
-                ),
-              ],
-              if (tags.isNotEmpty) ...[
-                const SizedBox(height: OrbSpacing.md),
-                Wrap(
-                  spacing: OrbSpacing.xs,
-                  runSpacing: OrbSpacing.xs,
-                  children: [
-                    for (final label in tags)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: OrbSpacing.md,
-                          vertical: OrbSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: OrbColors.mist,
-                          borderRadius: BorderRadius.circular(OrbRadii.pill),
-                        ),
-                        child: Text(label, style: text.labelMedium),
-                      ),
-                  ],
-                ),
-              ],
+              ),
+              const Icon(Icons.edit_outlined, color: OrbColors.textMuted),
             ],
           ),
-        ),
+          if (emotion != null) ...[
+            const SizedBox(height: OrbSpacing.md),
+            Row(
+              key: const ValueKey('home-today-emotion'),
+              children: [
+                SvgPicture.asset(
+                  moodFaceAsset(emotion),
+                  width: 24,
+                  height: 24,
+                  excludeFromSemantics: true,
+                ),
+                const SizedBox(width: OrbSpacing.sm),
+                Text(
+                  CheckInCopy.emotionName[emotion]!,
+                  style: text.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ],
+          if (note != null) ...[
+            const SizedBox(height: OrbSpacing.sm),
+            Text(
+              note,
+              key: const ValueKey('home-today-note'),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodyMedium?.copyWith(color: OrbColors.textSecondary),
+            ),
+          ],
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: OrbSpacing.md),
+            Wrap(
+              spacing: OrbSpacing.xs,
+              runSpacing: OrbSpacing.xs,
+              children: [
+                for (final label in tags)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: OrbSpacing.md,
+                      vertical: OrbSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: OrbColors.mist,
+                      borderRadius: BorderRadius.circular(OrbRadii.pill),
+                    ),
+                    child: Text(label, style: text.labelMedium),
+                  ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:orb_pm/app/orb_app.dart';
 import 'package:orb_pm/app/router.dart';
 import 'package:orb_pm/data/check_in/check_in_repository.dart';
-import 'package:orb_pm/data/db/app_database.dart';
+import 'package:orb_pm/data/profile/profile.dart';
 import 'package:orb_pm/shared/copy.dart';
+import 'package:orb_pm/shared/pig_pose.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_database.dart';
@@ -24,6 +24,13 @@ void main() {
     });
   });
 
+  Iterable<String> svgAssets() => find
+      .byType(SvgPicture)
+      .evaluate()
+      .map((e) => (e.widget as SvgPicture).bytesLoader)
+      .whereType<SvgAssetLoader>()
+      .map((l) => l.assetName);
+
   void phoneSize(WidgetTester tester) {
     tester.view.devicePixelRatio = 3;
     tester.view.physicalSize = const Size(1179, 2556);
@@ -34,7 +41,6 @@ void main() {
     tester,
   ) async {
     phoneSize(tester);
-    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     final dir = await tester.runAsync(
       () => Directory.systemTemp.createTemp('orb_restart'),
     );
@@ -46,14 +52,7 @@ void main() {
         ProviderScope(
           overrides: [
             routerProvider.overrideWithValue(createRouter()),
-            inMemoryDatabase(
-              AppDatabase.forTesting(
-                DatabaseConnection(
-                  NativeDatabase(file),
-                  closeStreamsSynchronously: true,
-                ),
-              ),
-            ),
+            overrideDatabase(fileDatabase(file)),
           ],
           child: const OrbApp(),
         ),
@@ -78,6 +77,16 @@ void main() {
     await launch();
     expect(find.text('Feeling Good'), findsOneWidget);
     expect(find.text(HomeCopy.todayEmptyTitle), findsNothing);
+    expect(svgAssets(), contains(PigPose.forLevel(4).asset));
+    expect(
+      tester.widget<Text>(find.byKey(const ValueKey('home-greeting'))).data,
+      HomeCopy.greetingFor(
+        trait: Trait.gentle,
+        level: 4,
+        userName: 'Dara',
+        pigName: 'Mochi',
+      ),
+    );
   });
 
   testWidgets('after midnight Home starts fresh on the next resume', (
@@ -92,7 +101,7 @@ void main() {
       ProviderScope(
         overrides: [
           routerProvider.overrideWithValue(createRouter()),
-          inMemoryDatabase(db),
+          overrideDatabase(db),
           clockProvider.overrideWithValue(() => now),
         ],
         child: const OrbApp(),

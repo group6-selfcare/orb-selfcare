@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/misc.dart';
@@ -17,9 +19,17 @@ AppDatabase memoryDatabase() {
   );
 }
 
-/// Overrides the app's database with an in-memory one, closed with the
-/// container. Add it to every ProviderScope that pumps the app.
-Override inMemoryDatabase([AppDatabase? db]) =>
+/// A database stored in [file], so it survives a restart of the app.
+AppDatabase fileDatabase(File file) {
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  return AppDatabase.forTesting(
+    DatabaseConnection(NativeDatabase(file), closeStreamsSynchronously: true),
+  );
+}
+
+/// Overrides the app's database with [db], or a fresh in-memory one, closed
+/// with the container. Add it to every ProviderScope that pumps the app.
+Override overrideDatabase([AppDatabase? db]) =>
     appDatabaseProvider.overrideWith((ref) {
       final database = db ?? memoryDatabase();
       ref.onDispose(database.close);

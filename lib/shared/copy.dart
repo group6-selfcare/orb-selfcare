@@ -222,8 +222,7 @@ abstract final class HomeCopy {
 
   // Today card
   static const todayLabel = 'Today';
-  static String todayFeeling(String level) => 'Feeling $level';
-  static String todayUpdated(String time) =>
+  static String todayCheckedInAt(String time) =>
       'Checked in at $time · Tap to edit';
   static const todayEmptyTitle = 'No check-in yet today';
   static const todayEmptyBody = 'One tap is enough. It takes a few seconds.';
@@ -281,7 +280,8 @@ abstract final class CheckInCopy {
   static const moreTags = 'More tags';
   static const fewerTags = 'Fewer tags';
 
-  /// What TalkBack reads for a level face, e.g. "Feeling Low".
+  /// A level as a feeling, e.g. "Feeling Low": what TalkBack reads for a
+  /// level face, and the label on Home's Today card.
   static String levelSemantics(MoodLevel level) =>
       'Feeling ${levelName[level]}';
 }

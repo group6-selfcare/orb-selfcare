@@ -14,7 +14,7 @@ void main() {
     now = DateTime(2026, 11, 18, 23, 59);
     container = ProviderContainer(
       overrides: [
-        inMemoryDatabase(),
+        overrideDatabase(),
         clockProvider.overrideWithValue(() => now),
       ],
     );

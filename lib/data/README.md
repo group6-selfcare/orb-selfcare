@@ -6,6 +6,6 @@ Everything stored on the device. There are no accounts and no network.
 - `profile/`: the Profile model and `ProfileRepository` on shared_preferences, PMG6-48
 - `check_in/`: the `CheckIn` model, `dayKey` (local date, rolls over at midnight) and `CheckInRepository` with its providers (`checkInRepositoryProvider`, `todayCheckInProvider`, `tagsProvider`, `clockProvider`), PMG6-50
 
-Tests swap the database for an in-memory one with `inMemoryDatabase()` from `test/helpers/test_database.dart`.
+Tests swap the database with `overrideDatabase()` from `test/helpers/test_database.dart`: an in-memory one by default, or `fileDatabase(file)` to test a restart.
 
 UI code only uses the repositories and their providers, never drift or shared_preferences directly.
