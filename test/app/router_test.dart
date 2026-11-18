@@ -84,7 +84,7 @@ void main() {
     await pumpApp(tester);
     expect(find.byType(NavigationBar), findsOneWidget);
 
-    await tester.tap(find.text('Check in'));
+    await tester.tap(find.byTooltip('Check in'));
     await tester.pumpAndSettle();
     expect(location(), '/check-in');
     expect(find.byType(NavigationBar), findsNothing);

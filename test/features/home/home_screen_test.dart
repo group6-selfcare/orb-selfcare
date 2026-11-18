@@ -50,18 +50,16 @@ void main() {
   final pill = find.byKey(const ValueKey('home-check-in-pill'));
   final todayCard = find.byKey(const ValueKey('home-today-card'));
 
-  testWidgets('shows the Orb header with a filled Check in pill', (
+  testWidgets('shows the Orb header with an icon-only Check in button', (
     tester,
   ) async {
     await pumpHome(tester);
 
     expect(find.text(HomeCopy.title), findsOneWidget);
     expect(pill, findsOneWidget);
-    expect(
-      find.ancestor(of: find.text(HomeCopy.checkIn), matching: pill),
-      findsOneWidget,
-    );
-    expect(tester.widget(pill), isA<FilledButton>());
+    expect(tester.widget(pill), isA<IconButton>());
+    expect(find.text(HomeCopy.checkIn), findsNothing);
+    expect(find.byTooltip(HomeCopy.checkIn), findsOneWidget);
   });
 
   testWidgets('the Check in pill uses the custom check-in icon', (

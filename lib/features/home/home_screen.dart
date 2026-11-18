@@ -84,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// "Orb" on the left, the Check in pill on the right.
+/// "Orb" on the left, the round Check in button (icon only) on the right.
 class _Header extends StatelessWidget {
   const _Header({required this.emphasised, required this.onCheckIn});
 
@@ -95,20 +95,14 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
-    const label = Text(HomeCopy.checkIn);
+    // Icon only: the tooltip gives screen readers and long-press the label.
     final icon = SvgPicture.asset(
       checkInIcon,
-      width: 22,
-      height: 22,
+      width: 28,
+      height: 28,
       excludeFromSemantics: true,
     );
-    final style = ButtonStyle(
-      visualDensity: VisualDensity.compact,
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: OrbSpacing.lg),
-      ),
-      minimumSize: const WidgetStatePropertyAll(Size(0, 40)),
-    );
+    const size = Size.square(48);
     return Row(
       children: [
         Expanded(
@@ -121,20 +115,26 @@ class _Header extends StatelessWidget {
           ),
         ),
         if (emphasised)
-          FilledButton.icon(
+          IconButton.filled(
             key: const ValueKey('home-check-in-pill'),
             onPressed: onCheckIn,
-            style: style,
+            tooltip: HomeCopy.checkIn,
+            style: IconButton.styleFrom(
+              backgroundColor: OrbColors.primary,
+              fixedSize: size,
+            ),
             icon: icon,
-            label: label,
           )
         else
-          OutlinedButton.icon(
+          IconButton.outlined(
             key: const ValueKey('home-check-in-pill'),
             onPressed: onCheckIn,
-            style: style,
+            tooltip: HomeCopy.checkIn,
+            style: IconButton.styleFrom(
+              side: const BorderSide(color: OrbColors.border),
+              fixedSize: size,
+            ),
             icon: icon,
-            label: label,
           ),
       ],
     );
