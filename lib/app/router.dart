@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/profile/profile.dart';
 import '../data/profile/profile_repository.dart';
+import '../features/check_in/check_in_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_routes.dart';
 import 'first_launch.dart';
@@ -86,13 +87,7 @@ GoRouter createRouter({
       // Outside the shell: no bottom bar.
       GoRoute(path: splashPath, builder: (_, _) => const SplashScreen()),
       OnboardingRoutes.route(),
-      GoRoute(
-        path: '/check-in',
-        builder: (_, _) => const ComingSoonScreen(
-          title: 'Check in',
-          message: 'The daily check-in is being built.',
-        ),
-      ),
+      GoRoute(path: '/check-in', builder: (_, _) => const CheckInScreen()),
       GoRoute(
         path: '/theme-preview',
         builder: (_, _) => const ThemePreviewScreen(),

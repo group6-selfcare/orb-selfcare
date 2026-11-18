@@ -6,6 +6,7 @@
 library;
 
 import '../data/profile/profile.dart';
+import '../features/check_in/mood_level.dart';
 
 /// Text for the onboarding screens (N1 to N4).
 abstract final class OnboardingCopy {
@@ -107,4 +108,26 @@ abstract final class HomeCopy {
   static const todayLabel = 'Today';
   static const todayEmptyTitle = 'No check-in yet today';
   static const todayEmptyBody = 'One tap is enough. It takes a few seconds.';
+}
+
+/// Text for the daily check-in.
+abstract final class CheckInCopy {
+  static const title = 'Today';
+  static const question = 'How are you feeling today?';
+  static const reassurance = "Pick what fits. There's no wrong answer.";
+  static const done = 'Done';
+  static const saved = "Saved. That's enough for today, or add a little more.";
+  static const saveFailed = "I couldn't save that. Please try again.";
+
+  static const levelName = {
+    MoodLevel.rough: 'Rough',
+    MoodLevel.low: 'Low',
+    MoodLevel.okay: 'Okay',
+    MoodLevel.good: 'Good',
+    MoodLevel.great: 'Great',
+  };
+
+  /// What TalkBack reads for a level face, e.g. "Feeling Low".
+  static String levelSemantics(MoodLevel level) =>
+      'Feeling ${levelName[level]}';
 }
