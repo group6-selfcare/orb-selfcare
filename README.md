@@ -61,6 +61,7 @@ lib/
   data/       drift database, repositories
   shared/     shared widgets, copy.dart
 assets/svg/   Pig D poses, mood faces, tab icons
+docs/qa/      QA test plan
 ```
 
 ## Tech
