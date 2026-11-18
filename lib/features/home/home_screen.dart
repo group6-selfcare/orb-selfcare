@@ -15,6 +15,9 @@ import 'today_check_in.dart';
 /// The route of the daily check-in.
 const checkInPath = '/check-in';
 
+/// The custom Check in icon: a smiling face in a speech bubble.
+const checkInIcon = 'assets/svg/icons/check_in.svg';
+
 /// The Home tab: where the pig lives.
 ///
 /// Before today's check-in (PMG6-63) the pig stands in its hero area and
@@ -93,7 +96,12 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     const label = Text(HomeCopy.checkIn);
-    const icon = Icon(Icons.favorite_border_rounded, size: 18);
+    final icon = SvgPicture.asset(
+      checkInIcon,
+      width: 22,
+      height: 22,
+      excludeFromSemantics: true,
+    );
     final style = ButtonStyle(
       visualDensity: VisualDensity.compact,
       padding: const WidgetStatePropertyAll(

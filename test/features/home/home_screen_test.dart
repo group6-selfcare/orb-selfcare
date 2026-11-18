@@ -64,6 +64,18 @@ void main() {
     expect(tester.widget(pill), isA<FilledButton>());
   });
 
+  testWidgets('the Check in pill uses the custom check-in icon', (
+    tester,
+  ) async {
+    await pumpHome(tester);
+
+    expect(
+      find.descendant(of: pill, matching: find.byType(SvgPicture)),
+      findsOneWidget,
+    );
+    expect(svgAssets(), contains(checkInIcon));
+  });
+
   testWidgets('the pig stands in the hero with its name', (tester) async {
     await pumpHome(tester);
 
