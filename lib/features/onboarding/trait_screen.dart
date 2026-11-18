@@ -17,12 +17,6 @@ import 'onboarding_scaffold.dart';
 class TraitScreen extends ConsumerWidget {
   const TraitScreen({super.key});
 
-  static const _icons = {
-    Trait.gentle: Icons.spa_outlined,
-    Trait.cheerful: Icons.wb_sunny_outlined,
-    Trait.playful: Icons.celebration_outlined,
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final text = Theme.of(context).textTheme;
@@ -65,7 +59,6 @@ class TraitScreen extends ConsumerWidget {
             for (final trait in Trait.values) ...[
               _TraitCard(
                 trait: trait,
-                icon: _icons[trait]!,
                 selected: trait == selected,
                 onTap: () => draft.setTrait(trait),
               ),
@@ -78,16 +71,17 @@ class TraitScreen extends ConsumerWidget {
   }
 }
 
+/// The pig face drawn for each trait.
+String traitFaceAsset(Trait trait) => 'assets/svg/pig/trait_${trait.name}.svg';
+
 class _TraitCard extends StatelessWidget {
   const _TraitCard({
     required this.trait,
-    required this.icon,
     required this.selected,
     required this.onTap,
   });
 
   final Trait trait;
-  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
@@ -129,14 +123,16 @@ class _TraitCard extends StatelessWidget {
               padding: const EdgeInsets.all(OrbSpacing.lg),
               child: Row(
                 children: [
+                  // The pig's face in this voice: calm, happy or cheeky.
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: selected ? OrbColors.surface : OrbColors.mist,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(icon, size: 22, color: OrbColors.primary),
+                    alignment: Alignment.center,
+                    child: SvgPicture.asset(traitFaceAsset(trait), width: 36),
                   ),
                   const SizedBox(width: OrbSpacing.md),
                   Expanded(

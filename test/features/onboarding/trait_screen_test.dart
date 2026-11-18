@@ -2,6 +2,7 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orb_pm/app/orb_app.dart';
@@ -44,7 +45,9 @@ void main() {
       tester.getSemantics(card(t)).flagsCollection.isSelected ==
       Tristate.isTrue;
 
-  testWidgets('shows the title and three cards with copy', (tester) async {
+  testWidgets('shows the title and three cards with faces and copy', (
+    tester,
+  ) async {
     await pumpN3(tester);
 
     expect(find.byType(TraitScreen), findsOneWidget);
@@ -53,6 +56,15 @@ void main() {
       expect(find.text(OnboardingCopy.traitName[t]!), findsOneWidget);
       expect(find.text(OnboardingCopy.traitDescription[t]!), findsOneWidget);
       expect(find.text(OnboardingCopy.traitSample[t]!), findsOneWidget);
+    }
+    final faces = find
+        .byType(SvgPicture)
+        .evaluate()
+        .map((e) => (e.widget as SvgPicture).bytesLoader)
+        .whereType<SvgAssetLoader>()
+        .map((l) => l.assetName);
+    for (final t in Trait.values) {
+      expect(faces, contains(traitFaceAsset(t)));
     }
   });
 
