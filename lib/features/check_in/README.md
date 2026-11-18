@@ -7,3 +7,4 @@ The `/check-in` screen: mood level, optional emotion, note and tags, and edit-to
 - `EmotionPicker`: the optional emotion. One at a time; tapping it again clears it. Picking a level that doesn't offer the current emotion clears it.
 
 Level faces (until the designer exports dedicated `level_*.svg` files): Rough uses Stressed, Low uses Sad, Okay uses Okay, Good uses Happy, Great uses Excited.
+- `TagPicker`: "What's it about?". The 8 primary tags as chips, all 18 behind "More tags". A picked tag stays visible when the list is folded. The note (500 characters) and tags are saved on Done or on the way out. Chips use the app's chip theme (sapphire when selected) rather than the older pink Figma style.
