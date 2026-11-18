@@ -12,6 +12,7 @@ import 'package:orb_pm/features/onboarding/meet_screen.dart';
 import 'package:orb_pm/shared/copy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/container_scope.dart';
 import '../helpers/test_database.dart';
 
 void main() {
@@ -63,9 +64,8 @@ void main() {
     ) async {
       SharedPreferences.setMockInitialValues(stored);
       final container = ProviderContainer(overrides: [inMemoryDatabase()]);
-      addTearDown(container.dispose);
       await tester.pumpWidget(
-        UncontrolledProviderScope(container: container, child: const OrbApp()),
+        ContainerScope(container: container, child: const OrbApp()),
       );
       return container;
     }

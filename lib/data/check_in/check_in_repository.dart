@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../db/app_database.dart';
@@ -67,9 +70,7 @@ class CheckInRepository {
             );
       } else {
         id = existing.id;
-        await (_db.update(
-          _db.checkIns,
-        )..where((c) => c.id.equals(id))).write(
+        await (_db.update(_db.checkIns)..where((c) => c.id.equals(id))).write(
           CheckInsCompanion(
             level: Value(level),
             emotion: Value(emotion),
@@ -137,9 +138,23 @@ final checkInRepositoryProvider = Provider<CheckInRepository>(
 );
 
 /// Today's check-in, or null before the user checks in. Updates live.
-final todayCheckInProvider = StreamProvider<CheckIn?>(
-  (ref) => ref.watch(checkInRepositoryProvider).watchToday(),
-);
+///
+/// The stream follows the day it started on, so the provider rebuilds
+/// itself for the new day:
+/// - at the next local midnight, and
+/// - when the app comes back to the foreground, because timers don't run
+///   reliably while the phone sleeps.
+final todayCheckInProvider = StreamProvider<CheckIn?>((ref) {
+  final now = ref.watch(clockProvider)();
+  final midnight = DateTime(now.year, now.month, now.day + 1);
+  final timer = Timer(midnight.difference(now), ref.invalidateSelf);
+  final lifecycle = AppLifecycleListener(onResume: ref.invalidateSelf);
+  ref.onDispose(() {
+    timer.cancel();
+    lifecycle.dispose();
+  });
+  return ref.watch(checkInRepositoryProvider).watchToday();
+});
 
 /// The 18 tags in display order. The first 8 are primary.
 final tagsProvider = FutureProvider<List<Tag>>(
