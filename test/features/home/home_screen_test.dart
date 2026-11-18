@@ -5,10 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orb_pm/app/orb_app.dart';
 import 'package:orb_pm/app/router.dart';
+import 'package:orb_pm/data/check_in/check_in_repository.dart';
 import 'package:orb_pm/data/profile/profile.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
 import 'package:orb_pm/shared/copy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/test_database.dart';
 
 void main() {
   late GoRouter router;
@@ -17,6 +20,7 @@ void main() {
   Future<void> pumpHome(
     WidgetTester tester, {
     Trait trait = Trait.cheerful,
+    int? checkedInLevel,
   }) async {
     SharedPreferences.setMockInitialValues({
       'profile.userName': 'Dara',
@@ -27,10 +31,17 @@ void main() {
     tester.view.devicePixelRatio = 3;
     tester.view.physicalSize = const Size(1179, 2556);
     addTearDown(tester.view.reset);
+    final db = memoryDatabase();
+    if (checkedInLevel != null) {
+      await CheckInRepository(db).saveToday(level: checkedInLevel);
+    }
     router = createRouter();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [routerProvider.overrideWithValue(router)],
+        overrides: [
+          routerProvider.overrideWithValue(router),
+          inMemoryDatabase(db),
+        ],
         child: const OrbApp(),
       ),
     );
@@ -132,5 +143,15 @@ void main() {
     expect(find.textContaining('Your goal'), findsNothing);
     expect(find.textContaining('Suggestions'), findsNothing);
     expect(find.byType(HomeScreen), findsOneWidget);
+  });
+
+  testWidgets('after today\'s check-in the empty Today card is gone', (
+    tester,
+  ) async {
+    await pumpHome(tester, checkedInLevel: 4);
+
+    expect(todayCard, findsNothing);
+    expect(find.text(HomeCopy.todayEmptyTitle), findsNothing);
+    expect(tester.widget(pill), isA<IconButton>());
   });
 }

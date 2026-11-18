@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/check_in/check_in_repository.dart';
+
 /// Whether the user has checked in today, as Home sees it.
 ///
-/// For now this is always false: the check-in storage (CheckInRepository,
-/// PMG6-50) isn't built yet, so Home always shows its before-check-in state.
-///
-/// When PMG6-50 lands, replace the body with a read of today's check-in
-/// from the repository's provider. Home only depends on this provider, so
-/// nothing in Home has to change.
-final hasCheckedInTodayProvider = FutureProvider<bool>((ref) async => false);
+/// It follows the live today stream, so Home switches to its
+/// after-check-in state as soon as a check-in is saved or edited.
+final hasCheckedInTodayProvider = FutureProvider<bool>(
+  (ref) async => await ref.watch(todayCheckInProvider.future) != null,
+);

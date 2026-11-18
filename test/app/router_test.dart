@@ -8,6 +8,8 @@ import 'package:orb_pm/app/router.dart';
 import 'package:orb_pm/app/shell/orb_tab.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
 
+import '../helpers/test_database.dart';
+
 void main() {
   late GoRouter router;
 
@@ -15,7 +17,10 @@ void main() {
     router = createRouter();
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [routerProvider.overrideWithValue(router)],
+        overrides: [
+          routerProvider.overrideWithValue(router),
+          inMemoryDatabase(),
+        ],
         child: const OrbApp(),
       ),
     );
