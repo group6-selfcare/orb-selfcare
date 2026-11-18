@@ -32,11 +32,11 @@ void main() {
     });
 
     test('a name is trimmed and must be 1 to 20 characters', () {
-      expect(validPigName('  Mochi  '), 'Mochi');
-      expect(validPigName('   '), isNull);
-      expect(validPigName(''), isNull);
-      expect(validPigName('a' * 20), 'a' * 20);
-      expect(validPigName('a' * 21), isNull);
+      expect(validName('  Mochi  '), 'Mochi');
+      expect(validName('   '), isNull);
+      expect(validName(''), isNull);
+      expect(validName('a' * 20), 'a' * 20);
+      expect(validName('a' * 21), isNull);
     });
   });
 

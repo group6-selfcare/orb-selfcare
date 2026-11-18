@@ -133,7 +133,7 @@ void main() {
       expect(find.byType(HomeScreen), findsOneWidget);
     });
 
-    testWidgets('the debug Finish on the last step completes onboarding', (
+    testWidgets('walking through onboarding and the debug Finish', (
       tester,
     ) async {
       final c = await launch(tester, {});
@@ -145,6 +145,17 @@ void main() {
         await tester.tap(find.text(OnboardingCopy.next));
         await tester.pumpAndSettle();
       }
+      await tester.enterText(find.byType(TextField), 'Dara');
+      await tester.pump();
+      await tester.tap(find.text(OnboardingCopy.next));
+      await tester.pumpAndSettle();
+
+      // N4 saved the answers, but onboarding isn't done until N15.
+      final saved = c.read(profileProvider).value!;
+      expect(saved.userName, 'Dara');
+      expect(saved.pigName, OnboardingCopy.pigNames.first);
+      expect(saved.onboardingDone, isFalse);
+
       await tester.tap(find.text('Finish (debug)'));
       await tester.pumpAndSettle();
 
