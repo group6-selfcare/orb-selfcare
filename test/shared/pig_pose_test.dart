@@ -11,6 +11,7 @@ void main() {
     expect(PigPose.forLevel(4), PigPose.joyful);
     expect(PigPose.forLevel(5), PigPose.cheering);
     expect({for (var l = 1; l <= 5; l++) PigPose.forLevel(l)}, hasLength(5));
+    expect(PigPose.joyful.asset, 'assets/svg/pig/pig_joyful.svg');
   });
 
   testWidgets('every pose SVG is bundled and uses no masks or filters', (
@@ -23,6 +24,8 @@ void main() {
       expect(svg, startsWith('<svg'), reason: pose.name);
       expect(svg, isNot(contains('<mask')), reason: pose.name);
       expect(svg, isNot(contains('<filter')), reason: pose.name);
+      expect(svg, isNot(contains('<image')), reason: pose.name);
+      expect(svg, isNot(contains('<text')), reason: pose.name);
     }
   });
 }

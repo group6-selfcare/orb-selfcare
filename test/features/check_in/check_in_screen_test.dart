@@ -4,6 +4,7 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:orb_pm/app/orb_app.dart';
@@ -186,10 +187,38 @@ void main() {
     expect(MoodLevel.fromValue(4), MoodLevel.good);
   });
 
-  testWidgets('every level face SVG is bundled', (tester) async {
+  testWidgets('every level has its own face SVG, flat for flutter_svg', (
+    tester,
+  ) async {
+    expect(MoodLevel.values.map(levelFaceAsset), [
+      'assets/svg/mood/level_rough.svg',
+      'assets/svg/mood/level_low.svg',
+      'assets/svg/mood/level_okay.svg',
+      'assets/svg/mood/level_good.svg',
+      'assets/svg/mood/level_great.svg',
+    ]);
     for (final level in MoodLevel.values) {
-      final svg = await rootBundle.loadString(moodFaceAsset(level.face));
-      expect(svg, startsWith('<svg'));
+      final svg = await tester.runAsync(
+        () => rootBundle.loadString(levelFaceAsset(level), cache: false),
+      );
+      expect(svg, startsWith('<svg'), reason: level.name);
+      for (final tag in ['<mask', '<filter', '<image', '<text']) {
+        expect(svg, isNot(contains(tag)), reason: '${level.name} $tag');
+      }
+    }
+  });
+
+  testWidgets('the check-in buttons draw the level faces', (tester) async {
+    await openCheckIn(tester);
+
+    final assets = find
+        .byType(SvgPicture)
+        .evaluate()
+        .map((e) => (e.widget as SvgPicture).bytesLoader)
+        .whereType<SvgAssetLoader>()
+        .map((l) => l.assetName);
+    for (final level in MoodLevel.values) {
+      expect(assets, contains(levelFaceAsset(level)), reason: level.name);
     }
   });
 

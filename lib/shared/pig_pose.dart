@@ -19,7 +19,7 @@ enum PigPose {
   calm('pig_calm'),
 
   /// Good, and N3: arms up with a sparkle ("Joyful" in Figma).
-  joyful('pig_cheer'),
+  joyful('pig_joyful'),
 
   /// Great, and N15: cheering with confetti.
   cheering('pig_cheering');

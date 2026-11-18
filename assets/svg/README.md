@@ -20,8 +20,10 @@ Every file must render in flutter_svg: no filters or masks, and text converted t
 | Rough (1) | Comforting: arms open, small heart | `pig_comforting.svg` |
 | Low (2) | Listening: head tilted, close | `pig_listening.svg` |
 | Okay (3) | Calm: eyes closed, settled | `pig_calm.svg` |
-| Good (4) | Joyful: arms up, sparkle | `pig_cheer.svg` |
+| Good (4) | Joyful: arms up, sparkle | `pig_joyful.svg` |
 | Great (5) | Cheering: confetti | `pig_cheering.svg` |
 
-Level faces on the check-in reuse the emotion faces until dedicated `level_*.svg` files exist: Rough uses Stressed, Low Sad, Okay Okay, Good Happy, Great Excited.
+## Level faces
+
+`mood/level_<rough|low|okay|good|great>.svg`, used by the check-in's 5 buttons through `levelFaceAsset(level)`. The Figma check-in screen ("2b Check-in page", node 592:8769) draws its levels with these mood faces, so the files are those faces: Rough is Stressed, Low Sad, Okay Okay, Good Happy, Great Excited. To change a level's art, replace its file; no code change is needed. Rough and Low must never look disappointed or judging.
 

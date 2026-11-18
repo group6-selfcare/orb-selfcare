@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/theme/tokens.dart';
 import '../../data/profile/profile.dart';
 import '../../shared/copy.dart';
+import '../../shared/pig_pose.dart';
 import 'onboarding_draft.dart';
 import 'onboarding_routes.dart';
 import 'onboarding_scaffold.dart';
@@ -38,7 +39,7 @@ class TraitScreen extends ConsumerWidget {
         child: Column(
           children: [
             SvgPicture.asset(
-              'assets/svg/pig/pig_cheer.svg',
+              PigPose.joyful.asset,
               width: 112,
               height: 112,
               semanticsLabel: 'Your pig companion, cheering',
