@@ -9,6 +9,7 @@ import 'package:orb_pm/data/check_in/check_in_repository.dart';
 import 'package:orb_pm/data/profile/profile.dart';
 import 'package:orb_pm/features/home/home_screen.dart';
 import 'package:orb_pm/shared/copy.dart';
+import 'package:orb_pm/shared/pig_pose.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_database.dart';
@@ -21,6 +22,9 @@ void main() {
     WidgetTester tester, {
     Trait trait = Trait.cheerful,
     int? checkedInLevel,
+    String? emotion,
+    String? note,
+    Set<String> tagIds = const {},
   }) async {
     SharedPreferences.setMockInitialValues({
       'profile.userName': 'Dara',
@@ -33,7 +37,12 @@ void main() {
     addTearDown(tester.view.reset);
     final db = memoryDatabase();
     if (checkedInLevel != null) {
-      await CheckInRepository(db).saveToday(level: checkedInLevel);
+      await CheckInRepository(db).saveToday(
+        level: checkedInLevel,
+        emotion: emotion,
+        note: note,
+        tagIds: tagIds,
+      );
     }
     router = createRouter();
     await tester.pumpWidget(
@@ -145,13 +154,103 @@ void main() {
     expect(find.byType(HomeScreen), findsOneWidget);
   });
 
-  testWidgets('after today\'s check-in the empty Today card is gone', (
-    tester,
-  ) async {
-    await pumpHome(tester, checkedInLevel: 4);
+  group('after check-in', () {
+    testWidgets('the pig takes the pose for the level', (tester) async {
+      for (final (level, pose) in [
+        (1, PigPose.comforting),
+        (2, PigPose.listening),
+        (3, PigPose.calm),
+        (4, PigPose.joyful),
+        (5, PigPose.cheering),
+      ]) {
+        await pumpHome(tester, checkedInLevel: level);
+        expect(svgAssets(), contains(pose.asset), reason: 'level $level');
+        expect(svgAssets(), isNot(contains(PigPose.curious.asset)));
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
 
-    expect(todayCard, findsNothing);
-    expect(find.text(HomeCopy.todayEmptyTitle), findsNothing);
-    expect(tester.widget(pill), isA<IconButton>());
+    testWidgets('the greeting is greetingFor(trait, level)', (tester) async {
+      await pumpHome(tester, trait: Trait.playful, checkedInLevel: 2);
+
+      expect(
+        tester.widget<Text>(find.byKey(const ValueKey('home-greeting'))).data,
+        HomeCopy.greetingFor(
+          trait: Trait.playful,
+          level: 2,
+          userName: 'Dara',
+          pigName: 'Mochi',
+        ),
+      );
+    });
+
+    testWidgets('the Today card shows level, emotion, note and tags', (
+      tester,
+    ) async {
+      await pumpHome(
+        tester,
+        checkedInLevel: 4,
+        emotion: 'peaceful',
+        note: 'Walked by the river after class and it really helped',
+        tagIds: {'family', 'selfCare'},
+      );
+
+      expect(find.text(HomeCopy.todayEmptyTitle), findsNothing);
+      expect(find.text('Feeling Good'), findsOneWidget);
+      expect(find.text('Peaceful'), findsOneWidget);
+      final note = tester.widget<Text>(
+        find.byKey(const ValueKey('home-today-note')),
+      );
+      expect(note.maxLines, 2);
+      expect(find.text('Family'), findsOneWidget);
+      expect(find.text('Self Care'), findsOneWidget);
+    });
+
+    testWidgets('a level-only check-in shows just the level', (tester) async {
+      await pumpHome(tester, checkedInLevel: 3);
+
+      expect(find.text('Feeling Okay'), findsOneWidget);
+      expect(find.byKey(const ValueKey('home-today-emotion')), findsNothing);
+      expect(find.byKey(const ValueKey('home-today-note')), findsNothing);
+    });
+
+    testWidgets('the button turns into a quieter Edit', (tester) async {
+      await pumpHome(tester, checkedInLevel: 4);
+
+      expect(find.byTooltip(HomeCopy.editCheckIn), findsOneWidget);
+      expect(find.byTooltip(HomeCopy.checkIn), findsNothing);
+      expect(
+        find.descendant(of: pill, matching: find.byType(SvgPicture)),
+        findsNothing,
+      );
+    });
+
+    testWidgets('tapping the Today card opens the check-in to edit', (
+      tester,
+    ) async {
+      await pumpHome(tester, checkedInLevel: 4);
+
+      await tester.ensureVisible(todayCard);
+      await tester.tap(todayCard);
+      await tester.pumpAndSettle();
+
+      expect(location(), checkInPath);
+      expect(find.text(CheckInCopy.editTitle), findsOneWidget);
+    });
+
+    testWidgets('an edit shows on Home straight away', (tester) async {
+      await pumpHome(tester, checkedInLevel: 2);
+      await tester.tap(pill);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('level-great')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('check-in-done')));
+      await tester.pumpAndSettle();
+
+      expect(location(), '/home');
+      expect(find.text('Feeling Great'), findsOneWidget);
+      expect(svgAssets(), contains(PigPose.cheering.asset));
+    });
   });
 }

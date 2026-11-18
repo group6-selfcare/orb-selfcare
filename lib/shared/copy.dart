@@ -8,6 +8,7 @@ library;
 import '../app/theme/tokens.dart';
 import '../data/profile/profile.dart';
 import '../features/check_in/mood_level.dart';
+import 'pig_pose.dart';
 
 /// Text for the onboarding screens (N1 to N4).
 abstract final class OnboardingCopy {
@@ -203,8 +204,27 @@ abstract final class HomeCopy {
     };
   }
 
+  static const editCheckIn = "Edit today's check-in";
+
+  /// What TalkBack reads for the pig on Home.
+  static String pigSemantics(String pigName, PigPose pose) {
+    final name = pigName.isEmpty ? 'Your pig companion' : pigName;
+    return switch (pose) {
+      PigPose.curious => '$name, your pig companion, waiting for you',
+      PigPose.comforting => '$name, opening its arms to comfort you',
+      PigPose.listening => '$name, listening closely',
+      PigPose.calm => '$name, calm and settled',
+      PigPose.joyful => '$name, happy with you',
+      PigPose.cheering => '$name, cheering for you',
+      PigPose.hello => '$name, waving hello',
+    };
+  }
+
   // Today card
   static const todayLabel = 'Today';
+  static String todayFeeling(String level) => 'Feeling $level';
+  static String todayUpdated(String time) =>
+      'Checked in at $time · Tap to edit';
   static const todayEmptyTitle = 'No check-in yet today';
   static const todayEmptyBody = 'One tap is enough. It takes a few seconds.';
 }
