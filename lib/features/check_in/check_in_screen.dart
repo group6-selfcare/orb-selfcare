@@ -640,7 +640,7 @@ class _LevelFace extends StatelessWidget {
                     child: AnimatedScale(
                       duration: _duration,
                       scale: selected ? 1.08 : 1,
-                      child: SvgPicture.asset(moodFaceAsset(level.face)),
+                      child: SvgPicture.asset(levelFaceAsset(level)),
                     ),
                   ),
                   const SizedBox(height: OrbSpacing.xs),
