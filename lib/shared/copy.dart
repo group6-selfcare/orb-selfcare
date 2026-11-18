@@ -114,6 +114,7 @@ abstract final class HomeCopy {
 /// Text for the daily check-in.
 abstract final class CheckInCopy {
   static const title = 'Today';
+  static const editTitle = 'Edit today';
   static const question = 'How are you feeling today?';
   static const reassurance = "Pick what fits. There's no wrong answer.";
   static const done = 'Done';

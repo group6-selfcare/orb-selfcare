@@ -8,3 +8,4 @@ The `/check-in` screen: mood level, optional emotion, note and tags, and edit-to
 
 Level faces (until the designer exports dedicated `level_*.svg` files): Rough uses Stressed, Low uses Sad, Okay uses Okay, Good uses Happy, Great uses Excited.
 - `TagPicker`: "What's it about?". The 8 primary tags as chips, all 18 behind "More tags". A picked tag stays visible when the list is folded. The note (500 characters) and tags are saved on Done or on the way out. Chips use the app's chip theme (sapphire when selected) rather than the older pink Figma style.
+- Edit today (PMG6-61): if today already has a check-in, the screen opens pre-filled with the title "Edit today", and Done updates the same row. After local midnight it starts empty again. Home follows `todayCheckInProvider`, so it updates as soon as the edit is saved.

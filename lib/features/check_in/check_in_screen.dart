@@ -35,6 +35,37 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   final _note = TextEditingController();
   final _tagIds = <String>{};
 
+  /// True when today already had a check-in: the screen edits it.
+  bool _editing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefill();
+  }
+
+  /// Opens today's check-in for editing, if there is one. A new day (after
+  /// local midnight) has none, so the screen starts empty.
+  Future<void> _prefill() async {
+    final CheckIn? today;
+    try {
+      today = await _repo.getToday();
+    } catch (_) {
+      return; // Start empty; saving will report any real problem.
+    }
+    // Don't overwrite a face the user already tapped while this loaded.
+    if (today == null || !mounted || _level != null) return;
+    setState(() {
+      _editing = true;
+      _level = MoodLevel.fromValue(today!.level);
+      _emotion = moodFromName(today.emotion);
+      _note.text = today.note ?? '';
+      _tagIds
+        ..clear()
+        ..addAll(today.tagIds);
+    });
+  }
+
   @override
   void dispose() {
     _note.dispose();
@@ -118,7 +149,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: const Text(CheckInCopy.title),
+          title: Text(_editing ? CheckInCopy.editTitle : CheckInCopy.title),
           leading: IconButton(
             onPressed: _close,
             icon: const Icon(Icons.chevron_left, size: 28),
