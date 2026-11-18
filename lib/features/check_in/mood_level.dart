@@ -35,8 +35,8 @@ String moodFaceAsset(Mood mood) => 'assets/svg/mood/emotion_${mood.name}.svg';
 
 /// The emotions offered under "Want to name it?" for each level.
 ///
-/// Draft from PMG6-59, awaiting PO approval. Every name is a [Mood], so it
-/// has a face in `assets/svg/mood/`.
+/// From PMG6-59, approved by the PO. Every name is a [Mood], so it has a
+/// face in `assets/svg/mood/`.
 const emotionsForLevel = <MoodLevel, List<Mood>>{
   MoodLevel.great: [Mood.excited, Mood.happy, Mood.loved, Mood.surprised],
   MoodLevel.good: [Mood.happy, Mood.peaceful, Mood.loved, Mood.okay],
