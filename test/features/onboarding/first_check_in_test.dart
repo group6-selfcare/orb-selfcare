@@ -108,7 +108,7 @@ void main() {
         .map((e) => (e.widget as SvgPicture).bytesLoader)
         .whereType<SvgAssetLoader>()
         .map((l) => l.assetName);
-    expect(svgs, contains('assets/svg/pig/pig_cheer.svg'));
+    expect(svgs, contains('assets/svg/pig/pig_cheering.svg'));
   });
 
   testWidgets('Skip also opens N15, keeping the check-in', (tester) async {

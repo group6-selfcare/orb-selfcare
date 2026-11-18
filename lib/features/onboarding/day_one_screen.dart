@@ -8,6 +8,7 @@ import '../../data/check_in/check_in_repository.dart';
 import '../../data/profile/profile.dart';
 import '../../data/profile/profile_repository.dart';
 import '../../shared/copy.dart';
+import '../../shared/pig_pose.dart';
 
 /// N15 Day one done: the pig cheers the first check-in.
 ///
@@ -91,7 +92,7 @@ class _DayOneScreenState extends ConsumerState<DayOneScreen> {
                           ),
                           alignment: Alignment.center,
                           child: SvgPicture.asset(
-                            'assets/svg/pig/pig_cheer.svg',
+                            PigPose.cheering.asset,
                             width: 160,
                             height: 160,
                             semanticsLabel: 'Your pig companion, cheering',
