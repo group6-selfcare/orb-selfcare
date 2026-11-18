@@ -11,7 +11,7 @@ void main() {
   testWidgets('OrbApp starts with the Orb theme', (tester) async {
     SharedPreferences.setMockInitialValues({'profile.onboardingDone': true});
     await tester.pumpWidget(
-      ProviderScope(overrides: [inMemoryDatabase()], child: const OrbApp()),
+      ProviderScope(overrides: [overrideDatabase()], child: const OrbApp()),
     );
     await tester.pumpAndSettle();
 

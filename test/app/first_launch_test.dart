@@ -63,7 +63,7 @@ void main() {
       Map<String, Object> stored,
     ) async {
       SharedPreferences.setMockInitialValues(stored);
-      final container = ProviderContainer(overrides: [inMemoryDatabase()]);
+      final container = ProviderContainer(overrides: [overrideDatabase()]);
       await tester.pumpWidget(
         ContainerScope(container: container, child: const OrbApp()),
       );

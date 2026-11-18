@@ -19,7 +19,7 @@ void main() {
       ProviderScope(
         overrides: [
           routerProvider.overrideWithValue(router),
-          inMemoryDatabase(),
+          overrideDatabase(),
         ],
         child: const OrbApp(),
       ),

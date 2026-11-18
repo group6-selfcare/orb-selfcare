@@ -26,7 +26,7 @@ void main() {
     addTearDown(tester.view.reset);
     router = createRouter(initialLocation: OnboardingRoutes.meet);
     container = ProviderContainer(
-      overrides: [routerProvider.overrideWithValue(router), inMemoryDatabase()],
+      overrides: [routerProvider.overrideWithValue(router), overrideDatabase()],
     );
     addTearDown(container.dispose);
     await tester.pumpWidget(
