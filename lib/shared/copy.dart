@@ -5,6 +5,7 @@
 /// check-in text here.
 library;
 
+import '../app/theme/tokens.dart';
 import '../data/profile/profile.dart';
 import '../features/check_in/mood_level.dart';
 
@@ -125,6 +126,27 @@ abstract final class CheckInCopy {
     MoodLevel.okay: 'Okay',
     MoodLevel.good: 'Good',
     MoodLevel.great: 'Great',
+  };
+
+  // Optional emotion (PMG6-59)
+  static const emotionTitle = 'Want to name it?';
+  static const emotionHint = 'Optional. Tap again to clear.';
+
+  static const emotionName = {
+    Mood.happy: 'Happy',
+    Mood.excited: 'Excited',
+    Mood.loved: 'Loved',
+    Mood.surprised: 'Surprised',
+    Mood.peaceful: 'Peaceful',
+    Mood.okay: 'Okay',
+    Mood.tired: 'Tired',
+    Mood.sleepy: 'Sleepy',
+    Mood.angry: 'Angry',
+    Mood.anxious: 'Anxious',
+    Mood.stressed: 'Stressed',
+    Mood.sad: 'Sad',
+    Mood.disappointed: 'Disappointed',
+    Mood.numb: 'Numb',
   };
 
   /// What TalkBack reads for a level face, e.g. "Feeling Low".

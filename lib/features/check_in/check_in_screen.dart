@@ -29,6 +29,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
 
   MoodLevel? _level;
 
+  /// The optional, more precise feeling. Only one at a time.
+  Mood? _emotion;
+
   /// Saves run one after another, so the last one always wins.
   Future<void> _saving = Future.value();
   bool _leaving = false;
@@ -36,8 +39,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   Future<void> _save() {
     final level = _level;
     if (level == null) return _saving;
+    final emotion = _emotion?.name;
     return _saving = _saving.then(
-      (_) => _repo.saveToday(level: level.value).catchError((Object _) {
+      (_) => _repo.saveToday(level: level.value, emotion: emotion).catchError((
+        Object _,
+      ) {
         if (mounted) {
           ScaffoldMessenger.of(
             context,
@@ -48,7 +54,17 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   }
 
   void _pickLevel(MoodLevel level) {
-    setState(() => _level = level);
+    setState(() {
+      _level = level;
+      // Keep the emotion only if the new level still offers it.
+      if (!emotionsForLevel[level]!.contains(_emotion)) _emotion = null;
+    });
+    _save();
+  }
+
+  /// Tapping the picked emotion again clears it.
+  void _pickEmotion(Mood emotion) {
+    setState(() => _emotion = _emotion == emotion ? null : emotion);
     _save();
   }
 
@@ -134,7 +150,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
                       alignment: Alignment.topCenter,
                       child: level == null
                           ? const SizedBox(width: double.infinity)
-                          : const _Extras(),
+                          : _Extras(
+                              level: level,
+                              emotion: _emotion,
+                              onEmotion: _pickEmotion,
+                            ),
                     ),
                   ],
                 ),
@@ -161,34 +181,173 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> {
   }
 }
 
-/// The optional extras, shown once a level is picked. The emotion, note
-/// and tags (PMG6-59, 60) go here.
+/// The optional extras, shown once a level is picked: the saved note, then
+/// "Want to name it?". The note and tags (PMG6-60) go below.
 class _Extras extends StatelessWidget {
-  const _Extras();
+  const _Extras({
+    required this.level,
+    required this.emotion,
+    required this.onEmotion,
+  });
+
+  final MoodLevel level;
+  final Mood? emotion;
+  final ValueChanged<Mood> onEmotion;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final text = Theme.of(context).textTheme;
+    return Column(
       key: const ValueKey('check-in-extras'),
-      padding: const EdgeInsets.only(top: OrbSpacing.lg),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.check_circle_rounded,
-            size: 18,
-            color: OrbColors.success,
-          ),
-          const SizedBox(width: OrbSpacing.xs),
-          Flexible(
-            child: Text(
-              CheckInCopy.saved,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: OrbColors.success),
-              textAlign: TextAlign.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: OrbSpacing.lg),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.check_circle_rounded,
+              size: 18,
+              color: OrbColors.success,
             ),
+            const SizedBox(width: OrbSpacing.xs),
+            Flexible(
+              child: Text(
+                CheckInCopy.saved,
+                style: text.bodySmall?.copyWith(color: OrbColors.success),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: OrbSpacing.xl),
+        EmotionPicker(level: level, selected: emotion, onPicked: onEmotion),
+      ],
+    );
+  }
+}
+
+/// "Want to name it?": the faces that match [level]. Optional, one at a
+/// time, and tapping the picked one again clears it.
+class EmotionPicker extends StatelessWidget {
+  const EmotionPicker({
+    super.key,
+    required this.level,
+    required this.selected,
+    required this.onPicked,
+  });
+
+  final MoodLevel level;
+  final Mood? selected;
+  final ValueChanged<Mood> onPicked;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(OrbSpacing.lg),
+      decoration: BoxDecoration(
+        color: OrbColors.surface,
+        borderRadius: BorderRadius.circular(OrbRadii.xl),
+        border: Border.all(color: OrbColors.border),
+      ),
+      child: Column(
+        children: [
+          Semantics(
+            header: true,
+            child: Text(CheckInCopy.emotionTitle, style: text.titleMedium),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            CheckInCopy.emotionHint,
+            style: text.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: OrbSpacing.md),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final mood in emotionsForLevel[level]!)
+                Expanded(
+                  child: _EmotionFace(
+                    mood: mood,
+                    selected: mood == selected,
+                    onTap: () => onPicked(mood),
+                  ),
+                ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _EmotionFace extends StatelessWidget {
+  const _EmotionFace({
+    required this.mood,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final Mood mood;
+  final bool selected;
+  final VoidCallback onTap;
+
+  static const _duration = Duration(milliseconds: 180);
+
+  @override
+  Widget build(BuildContext context) {
+    final label = CheckInCopy.emotionName[mood]!;
+    return Semantics(
+      key: ValueKey('emotion-${mood.name}'),
+      container: true,
+      button: true,
+      selected: selected,
+      label: label,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(OrbRadii.lg),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: OrbSpacing.xs),
+            child: Column(
+              children: [
+                AnimatedContainer(
+                  duration: _duration,
+                  width: 52,
+                  height: 52,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    // The face's own colour, softly, when picked.
+                    color: selected
+                        ? mood.color.withValues(alpha: 0.35)
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: selected ? OrbColors.primary : Colors.transparent,
+                      width: 2,
+                    ),
+                  ),
+                  child: SvgPicture.asset(moodFaceAsset(mood)),
+                ),
+                const SizedBox(height: OrbSpacing.xs),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: selected ? OrbColors.primary : OrbColors.ink,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
