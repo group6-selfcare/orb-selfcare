@@ -49,7 +49,10 @@ void main() {
   late SpyCheckInRepository repo;
 
   /// Opens Home for a returning user, then the check-in from it.
-  Future<void> openCheckIn(WidgetTester tester) async {
+  Future<void> openCheckIn(
+    WidgetTester tester, {
+    Future<void> Function(AppDatabase db)? seed,
+  }) async {
     SharedPreferences.setMockInitialValues({
       'profile.userName': 'Dara',
       'profile.pigName': 'Mochi',
@@ -61,6 +64,7 @@ void main() {
     addTearDown(tester.view.reset);
     db = memoryDatabase();
     repo = SpyCheckInRepository(db);
+    if (seed != null) await seed(db);
     router = createRouter();
     await tester.pumpWidget(
       ProviderScope(
@@ -406,6 +410,82 @@ void main() {
       final field = tester.widget<TextField>(note);
       expect(field.controller!.text, hasLength(500));
       expect(find.text('500/500'), findsOneWidget);
+    });
+  });
+
+  group('edit today', () {
+    Future<void> seedToday(AppDatabase db) => CheckInRepository(db).saveToday(
+      level: 2,
+      emotion: 'sad',
+      note: 'Missed the bus',
+      tagIds: {'work', 'weather'},
+    );
+    Finder tag(String id) => find.byKey(ValueKey('tag-$id'));
+    final note = find.byKey(const ValueKey('check-in-note'));
+
+    testWidgets("today's check-in opens pre-filled as \"Edit today\"", (
+      tester,
+    ) async {
+      await openCheckIn(tester, seed: seedToday);
+
+      expect(find.text(CheckInCopy.editTitle), findsOneWidget);
+      expect(isSelected(tester, MoodLevel.low), isTrue);
+      expect(
+        tester
+                .getSemantics(find.byKey(const ValueKey('emotion-sad')))
+                .flagsCollection
+                .isSelected ==
+            Tristate.isTrue,
+        isTrue,
+      );
+      expect(tester.widget<TextField>(note).controller!.text, 'Missed the bus');
+      expect(tester.widget<FilterChip>(tag('work')).selected, isTrue);
+      // Weather isn't primary, but it's picked, so it shows folded too.
+      expect(tester.widget<FilterChip>(tag('weather')).selected, isTrue);
+      expect(done, findsOneWidget);
+      expect(repo.levels, isEmpty, reason: 'opening saves nothing');
+    });
+
+    testWidgets('changing a value and Done updates the same row', (
+      tester,
+    ) async {
+      await openCheckIn(tester, seed: seedToday);
+      final before = await repo.getToday();
+
+      await tester.tap(face(MoodLevel.good));
+      await tester.pumpAndSettle();
+      await tester.enterText(note, 'Bus came after all');
+      await tester.ensureVisible(tag('work'));
+      await tester.pumpAndSettle();
+      await tester.tap(tag('work'));
+      await tester.pumpAndSettle();
+      await tester.tap(done);
+      await tester.pumpAndSettle();
+
+      final after = await repo.getToday();
+      expect(await db.select(db.checkIns).get(), hasLength(1));
+      expect(after?.id, before?.id);
+      expect(after?.level, 4);
+      expect(after?.emotion, isNull, reason: 'Good does not offer Sad');
+      expect(after?.note, 'Bus came after all');
+      expect(after?.tagIds, {'weather'});
+      expect(location(), '/home');
+    });
+
+    testWidgets('on a new day the check-in starts empty', (tester) async {
+      await openCheckIn(
+        tester,
+        seed: (db) => CheckInRepository(
+          db,
+          now: () => DateTime.now().subtract(const Duration(days: 1)),
+        ).saveToday(level: 5, note: 'Yesterday'),
+      );
+
+      expect(find.text(CheckInCopy.title), findsOneWidget);
+      for (final level in MoodLevel.values) {
+        expect(isSelected(tester, level), isFalse);
+      }
+      expect(done, findsNothing);
     });
   });
 }
