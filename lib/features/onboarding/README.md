@@ -7,8 +7,9 @@ N1 Meet your companion, N2 Name your companion, N3 Companion trait, N4 Your name
 - `onboarding_draft.dart`: `onboardingDraftProvider` holds the answers (pig name, trait, user name) in memory, so they survive going back and forward. Read it to prefill a step, and write to it as the user answers.
 - `meet_screen.dart`: N1.
 - `name_screen.dart` and `pig_names.dart`: N2, the suggested names (in `copy.dart`) and the 1–20 character rule.
+- `trait_screen.dart`: N3, three trait cards that act as radio buttons.
 
-N3 and N4 are placeholders until PMG6-55 and 56. In debug builds, the last one has a "Finish (debug)" button that completes onboarding.
+N4 is a placeholder until PMG6-56. In debug builds, the last one has a "Finish (debug)" button that completes onboarding.
 
 Saving the profile (PMG6-57):
 - N4: call `ref.read(profileProvider.notifier).saveAnswers(...)` with the draft's answers.
