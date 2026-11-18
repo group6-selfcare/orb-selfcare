@@ -5,6 +5,8 @@ import 'package:orb_pm/app/orb_app.dart';
 import 'package:orb_pm/app/router.dart';
 import 'package:orb_pm/app/theme/theme_preview_screen.dart';
 
+import '../../helpers/test_database.dart';
+
 void main() {
   testWidgets('lists do not stretch or glow when pulled past the edge', (
     tester,
@@ -12,7 +14,10 @@ void main() {
     final router = createRouter(initialLocation: '/theme-preview');
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [routerProvider.overrideWithValue(router)],
+        overrides: [
+          routerProvider.overrideWithValue(router),
+          inMemoryDatabase(),
+        ],
         child: const OrbApp(),
       ),
     );
